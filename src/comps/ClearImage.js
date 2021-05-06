@@ -6,7 +6,7 @@ import Cookies from 'universal-cookie';
 const ClearImage = () => {
 
     const cookies = new Cookies();
-    const { appState, setAppState } = useContext(AppStateCtx);
+    const { setAppState } = useContext(AppStateCtx);
 
     const onClear = () => {
         setAppState(0);

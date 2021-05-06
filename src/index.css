@@ -1,16 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&display=swap');
 
 :root{
-  --primary: #efb6b2;
+  --primary: #5b9af8;
   --secondary: #4e4e4e;
   --error: #ff4a4a;
-  --width: 1200px;
+  --width: 1600px;
 }
 
 /* base styles & title */
 body{
   font-family: "Noto Serif";
   color: var(--secondary);
+  overflow: hidden; /*  Disable scrollbars */
+  display: block;  /* No floating content on sides */
 }
 .App{
   max-width: var(--width);
@@ -35,11 +37,12 @@ body{
   display: none;
 }
 
-/* upload form styles */
 .ImageUIPanel {
-  margin: 30px auto 10px;
+  max-width: var(--width);
+  margin-top: 30px;
   text-align: center;
 }
+
 label{
   margin-bottom: 0;
 }
@@ -56,25 +59,21 @@ label input{
   color: var(--error);
 }
 
-/* progress bar styles */
 .progress-bar {
   height: 5px;
   background: var(--primary);
   margin-top: 20px;
 }
 
-/* image grid styles */
-.img-viewer {
-  width: 1200px;
-  margin-top: 30px;
-}
-
 .img-container {
-  max-width: var(--width);
-  max-height: 700px;
+  padding: 20px;
   margin-left: auto;
   margin-right: auto;
   display: block;
 }
 
-/* modal styles */
+ .measure {
+  position: absolute;
+  left: -10000px;
+  top: -10000px;
+ }

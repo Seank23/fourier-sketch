@@ -15,6 +15,10 @@ function App() {
   const [appState, setAppState] = useState(0);
   const appStateProvider = useMemo(() => ({appState, setAppState}), [appState, setAppState]);
 
+  if(cookies.get('imageId') && appState === 0) {
+    setAppState(1);
+  }
+
   return (
     <div className="App">
       <Title/>

@@ -11,25 +11,26 @@ const useStorage = (file) => {
     const [url, setUrl] = useState(null);
 
     useEffect(() => {
-        // references
-        const storageRef = projectStorage.ref(file.name);
-        const collectionRef = projectFirestore.collection('images');
+        if(file) {
+            const storageRef = projectStorage.ref(file.name);
+            const collectionRef = projectFirestore.collection('images');
 
-        storageRef.put(file).on('state_changed', (snapshot) => {
-            let percentage = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            setProgress(percentage);
-        },
-        (err) => {
-            setError(err);
-        },
-        async () => {
-            const url = await storageRef.getDownloadURL();
-            const createdAt = timestamp();
-            collectionRef.add({ url, createdAt }).then(function(docRef) {
-                cookies.set('imageId', docRef.id, { path: '/', maxAge: 1800 });
+            storageRef.put(file).on('state_changed', (snapshot) => {
+                let percentage = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                setProgress(percentage);
+            },
+            (err) => {
+                setError(err);
+            },
+            async () => {
+                const url = await storageRef.getDownloadURL();
+                const createdAt = timestamp();
+                collectionRef.add({ url, createdAt }).then(function(docRef) {
+                    cookies.set('imageId', docRef.id, { path: '/', maxAge: 1800 });
+                });
+                setUrl(url);
             });
-            setUrl(url);
-        })
+        }
     }, [file]);
 
     return { progress, url, error }
