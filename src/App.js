@@ -4,6 +4,7 @@ import ImageViewer from './comps/ImageViewer';
 import Title from './comps/Title';
 import Cookies from 'universal-cookie';
 import ImageUIPanel from './comps/ImageUIPanel';
+import UploadImage from './comps/UploadImage';
 
 const cookies = new Cookies();
 setInterval(function() {
@@ -24,7 +25,8 @@ function App() {
       <Title/>
       <AppStateCtx.Provider value={appStateProvider}>
         <ImageUIPanel/>
-        <ImageViewer/>
+        { appState === 0 && <UploadImage/> }
+        { appState > 0 && <ImageViewer/> }
       </AppStateCtx.Provider>
     </div>
   );

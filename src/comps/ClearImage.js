@@ -11,7 +11,6 @@ const ClearImage = () => {
     const onClear = () => {
         setAppState(0);
         cookies.set('imageId', '', { path: '/', maxAge: 1800 });
-        console.log(cookies.get('imageId'));
     }
 
     return (

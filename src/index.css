@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap');
 
 :root{
   --primary: #5b9af8;
@@ -7,30 +8,26 @@
   --width: 1600px;
 }
 
-/* base styles & title */
 body{
-  font-family: "Noto Serif";
+  font-family: "Poppins";
   color: var(--secondary);
   overflow: hidden; /*  Disable scrollbars */
-  display: block;  /* No floating content on sides */
+  display: block;
+  align-items: center;
+  justify-content: center;
 }
+
 .App{
   max-width: var(--width);
   margin: 0 auto;
 }
+
 .title h1{
   margin-top: 20px;
   color: var(--primary);
   font-size: 1.2rem;
   letter-spacing: 2px;
   font-weight: normal;
-}
-.title h2, .title p{
-  text-align: center;
-}
-.title h2{
-  margin-top: 60px;
-  font-size: 2.6rem;
 }
 
 .hidden {
@@ -39,6 +36,7 @@ body{
 
 .ImageUIPanel {
   max-width: var(--width);
+  height: 63px;
   margin-top: 30px;
   text-align: center;
 }
@@ -46,15 +44,18 @@ body{
 label{
   margin-bottom: 0;
 }
+
 label input{
   height: 0;
   width: 0;
   opacity: 0;
 }
+
 .output{
   height: auto;
   font-size: 0.8rem;
 }
+
 .error{
   color: var(--error);
 }
@@ -77,3 +78,100 @@ label input{
   left: -10000px;
   top: -10000px;
  }
+
+ #welcomeText {
+   padding: 30px 0;
+   margin: 0;
+   font-size: 1.5rem;
+ }
+
+ .viewer-container {
+   height: 802px;
+ }
+
+ .drag-area{
+  border: 2px dashed var(--primary);
+  border-radius: 5px;
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+.drag-area:hover {
+  background-color: #dae8fc;
+}
+.drag-area.active{
+  border: 2px solid var(--primary);
+  background-color: #bfd7fc;
+}
+.drag-area .icon{
+  font-size: 100px;
+  color: var(--primary);
+}
+.drag-area header{
+  font-size: 30px;
+  font-weight: 500;
+  color: var(--primary);
+}
+.drag-area span{
+  font-size: 25px;
+  font-weight: 500;
+  color: var(--primary);
+  margin: 10px 0 15px 0;
+}
+.drag-area button{
+  padding: 10px 25px;
+  font-size: 20px;
+  font-weight: 500;
+  border: none;
+  outline: none;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#progress-bar {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.lds-ring {
+  display: inline-block;
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+.lds-ring div {
+  box-sizing: border-box;
+  display: block;
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  margin: 8px;
+  border: 8px solid var(--primary);
+  border-radius: 50%;
+  animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  border-color: var(--primary) transparent transparent transparent;
+}
+.lds-ring div:nth-child(1) {
+  animation-delay: -0.45s;
+}
+.lds-ring div:nth-child(2) {
+  animation-delay: -0.3s;
+}
+.lds-ring div:nth-child(3) {
+  animation-delay: -0.15s;
+}
+@keyframes lds-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

@@ -2,7 +2,6 @@ import React, { useContext } from 'react';
 import { Card } from 'react-bootstrap';
 import { AppStateCtx } from '../Contexts';
 import ClearImage from './ClearImage';
-import UploadImage from './UploadImage';
 
 const ImageUIPanel = () => {
 
@@ -11,7 +10,7 @@ const ImageUIPanel = () => {
     return ( 
         <Card className="ImageUIPanel">
             <Card.Header>
-            { appState === 0  && <UploadImage/>}
+            { appState === 0  && <span id="welcomeText">Welcome to FourierSketch, upload an image to start!</span>}
             { appState > 0  && <ClearImage/>}
             </Card.Header>
         </Card>

@@ -1,17 +1,30 @@
 import React, { useContext, useState, useEffect } from 'react';
+import { useDropzone } from 'react-dropzone';
 import ProgressBar from './ProgressBar';
-import { Button } from 'react-bootstrap';
+import { Card } from 'react-bootstrap';
 import { AppStateCtx } from '../Contexts';
 import useStorage from '../hooks/useStorage';
+import { FaFileUpload } from 'react-icons/fa';
 
 const UploadImage = () => {
-    
-    const types = ['image/png', 'image/jpeg', 'image/jpg'];
 
     const { setAppState } = useContext(AppStateCtx);
     const [file, setFile] = useState(null);
-    const [error, setError] = useState(null);
+    const [dragging, setDragging] = useState(false);
     const { url, progress } = useStorage(file);
+
+    const { getRootProps, getInputProps } = useDropzone({
+        accept: "image/*",
+        onDrop: (acceptedFiles) => {
+            setFile(acceptedFiles[0]);
+        }
+    });
+
+    const onDrag = (isDragging) => {
+        if(dragging !== isDragging) {
+            setDragging(isDragging);
+        }
+    }
 
     useEffect(() => {
         if(url) {
@@ -20,34 +33,20 @@ const UploadImage = () => {
         }
     }, [url, setFile, setAppState])
 
-    const uploadHandler = (e) => {
-
-        let selected = e.target.files[0];
-        if(selected) {
-            if(types.includes(selected.type)) {
-                setFile(selected);
-                setError('');
-            } else {
-                setFile(null);
-                setError('Please select an image file (.png or .jpg)')
-            } 
-        }
-    }
-
     return (
-        <form>
-            <Button variant="outline-primary" disabled={file}>
-                <label>
-                    <input type="file" onChange={uploadHandler} disabled={file} />
-                    <span>Upload</span>
-                </label>
-            </Button>
-            <div className="output">
-                { error && <div className="error">{ error }</div> }
-                { file && <div className="file">{ file.name }</div> }
-                { file && <ProgressBar progress={progress} /> }
-            </div>
-        </form>
+        <Card body className="viewer-container shadow">
+            { !file && 
+            <div {...getRootProps()} style={{height: "100%"}}>
+                <div className={`drag-area ${dragging ? "active" : "" } `} onDragOver={() => onDrag(true)} onDrop={() => onDrag(false)}>
+                    <input {...getInputProps()}/>
+                    <div className="icon"><FaFileUpload/></div>
+                    <header>Drag & Drop to Upload File</header>
+                    <span>OR</span>
+                    <button>Browse File</button>
+                </div>
+            </div> }
+            { file && <ProgressBar message={"Uploading Image..."} progress={progress} /> }
+        </Card>
     )
 }
 
