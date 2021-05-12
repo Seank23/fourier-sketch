@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { AppStateCtx } from './Contexts'
-import ImageViewer from './comps/ImageViewer';
 import Title from './comps/Title';
 import Cookies from 'universal-cookie';
 import ImageUIPanel from './comps/ImageUIPanel';
 import UploadImage from './comps/UploadImage';
+import ImageController from './comps/ImageController';
 
 const cookies = new Cookies();
 setInterval(function() {
@@ -26,7 +26,7 @@ function App() {
       <AppStateCtx.Provider value={appStateProvider}>
         <ImageUIPanel/>
         { appState === 0 && <UploadImage/> }
-        { appState > 0 && <ImageViewer/> }
+        { appState > 0 && <ImageController/> }
       </AppStateCtx.Provider>
     </div>
   );

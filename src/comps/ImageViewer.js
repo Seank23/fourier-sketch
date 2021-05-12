@@ -1,16 +1,19 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { AppStateCtx } from '../Contexts';
 import { Card } from 'react-bootstrap';
+import { AppStateCtx, ImageDataCtx } from '../Contexts';
 import ProgressBar from './ProgressBar';
-import useFirestore from '../hooks/useFirestore';
 
-const ImageViewer = () => {
+const ImageViewer = (img) => {
     
+    var imgElem = img['img'];
     const { appState } = useContext(AppStateCtx);
-    const [imageData, setImageData] = useState(null);
-    const [prevUrl, setPrevUrl] = useState(null);
     const [imageLoaded, setImageLoaded] = useState(false);
-    const { doc } = useFirestore('images');
+    const [message, setMessage] = useState(""); 
+    const [coords, setCoords] = useState([0, 0]);
+    const [dim, setDim] = useState(0, 0);
+
+
+    const { imageData, setImageData } = useContext(ImageDataCtx);
 
     const canvasRef = React.useRef(null);
     const measureRef = React.useRef(null);
@@ -30,39 +33,68 @@ const ImageViewer = () => {
     }
 
     useEffect(() => {
-
+        
         const canvas = canvasRef.current;
-        if(canvas && doc) {
+        if(canvas) {
+            setMessage("Loading Image...");
             setImageLoaded(false);
             const ctx = canvas.getContext("2d");
+            if(imgElem) {
+                // Get image data (native size)
+                var fullSize = document.createElement('canvas');
+                var fullSizeCtx = fullSize.getContext("2d");
+                fullSize.width = imgElem.width;
+                fullSize.height = imgElem.height;
+                fullSizeCtx.drawImage(imgElem, 0, 0, imgElem.width, imgElem.height);
+                setImageData(fullSizeCtx.getImageData(0, 0, imgElem.width, imgElem.height));
 
-            if(appState === 0) {
+                // Fit image to canvas
+                var dim = getImageDimensions(imgElem, measureRef.current, canvas);
+                setDim(dim);
+                var coords = [(canvas.width - dim[0]) / 2, (canvas.height - dim[1]) / 2];
+                setCoords(coords);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(imgElem, coords[0], coords[1], dim[0], dim[1]);
+                setImageLoaded(true);
+            } else {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 setImageData(null);
-            } else {
-                var img = new Image();
-                img.crossOrigin = "Anonymous";
-                if(doc.url !== prevUrl) {
-                    img.src = doc.url;
-                    setPrevUrl(doc.url);
-                }
-                img.onload = () => {
-                    var dim = getImageDimensions(img, measureRef.current, canvas);
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(img, (canvas.width - dim[0]) / 2, (canvas.height - dim[1]) / 2, dim[0], dim[1]);
-                    setImageData(ctx.getImageData(0, 0, img.width, img.height));
-                    setImageLoaded(true);
-                };
             }
         }
-    }, [appState, doc, prevUrl]);
+    }, [imgElem, setImageData]);
+
+    useEffect(() => {
+
+        const canvas = canvasRef.current;
+        if(canvas && appState > 2) {
+            const ctx = canvas.getContext("2d");
+            if(imageData) {
+                createImageBitmap(imageData).then(renderer => ctx.drawImage(renderer, coords[0], coords[1], dim[0], dim[1]));
+            }
+        }
+    }, [appState, coords, dim, imageData]);
+
+    useEffect(() => {
+
+        if(appState === 3) {
+            setImageLoaded(false);
+            setMessage("Preprocessing Image...");
+        }
+        else if(appState === 4) {
+            setImageLoaded(false);
+            setMessage("Extracting Edges...");
+        }
+        else if(appState === 5) {
+            setImageLoaded(true);
+        }
+    }, [appState]);
 
     return (
         <div>
             <div className="measure" ref={measureRef}></div>
             <Card body className="viewer-container shadow">
-                { !imageLoaded && <ProgressBar message={"Loading Image..."} progress={null} /> }
-                <canvas className="img-container" width={1280} height={720} ref={canvasRef}></canvas>
+                { !imageLoaded && <ProgressBar message={message} progress={null} /> }
+                <canvas className="img-container" width={1280} height={720} ref={canvasRef} hidden={!imageLoaded}></canvas>
             </Card>
         </div>
     )
