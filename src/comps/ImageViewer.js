@@ -85,6 +85,10 @@ const ImageViewer = (img) => {
             setMessage("Extracting Edges...");
         }
         else if(appState === 5) {
+            setImageLoaded(false);
+            setMessage("Tracing Path...");
+        }
+        else if(appState === 6) {
             setImageLoaded(true);
         }
     }, [appState]);

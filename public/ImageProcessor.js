@@ -1,11 +1,27 @@
 
 onmessage = (e) => {
-    var { imageData, denoiseThreshold } = e.data;
+    var { imageData, denoiseThreshold, sampleInterval } = e.data;
     postMessage(3);
     var imgMatrix = ImageDataToMatrix(ToGrayscale(imageData));
     postMessage(4);
     var denoiseSobel = DenoiseImage(ConvolveSobel(imgMatrix), denoiseThreshold);
-    var outputImg = MatrixToImageData(denoiseSobel);
+    postMessage(5);
+    var sampledPixels = GetSampledPixels(denoiseSobel, sampleInterval);
+    var startT = Date.now();
+    console.log(sampledPixels.length);
+    var path = GetPath(sampledPixels, sampleInterval, 100);
+    console.log(Date.now() - startT);
+    var sampledImg = new Array(denoiseSobel.length);
+    for(let i = 0; i < sampledImg.length; i++) {
+        sampledImg[i] = new Array(denoiseSobel[0].length);
+        for(let j = 0; j < sampledImg[i].length; j++) {
+            sampledImg[i][j] = 0;
+        }
+    }
+    for(let i = 0; i < path.length; i++) {
+        sampledImg[path[i][0]][path[i][1]] = 255;
+    }
+    var outputImg = MatrixToImageData(sampledImg);
     postMessage(outputImg);
 }
 
@@ -84,6 +100,91 @@ function ConvolveSobel(imgMatrix) {
         }
     }
     return outX;
+}
+
+function GetSampledPixels(imgMatrix, sampleInterval) {
+
+    const imgWidth = imgMatrix[0].length;
+    const imgHeight = imgMatrix.length;
+
+    var sampledPixels = [];
+    var count = 0;
+    for(let i = 0; i < imgHeight; i += sampleInterval) {
+        for(let j = 0; j < imgWidth; j += sampleInterval) {
+            if(imgMatrix[i][j] > 0) {
+                sampledPixels[count] = new Array(2);
+                sampledPixels[count][0] = i;
+                sampledPixels[count][1] = j;
+                count++;
+            }
+        }
+    }
+    return sampledPixels;
+}
+
+function GetPath(pixels, sampleInterval, depth) {
+
+    var pixelStrings = PixelsToString(pixels);
+    var path = [];
+    var pixelIndex = 0;
+    path[0] = pixelStrings[0];
+    var backtrackCount = 0;
+    while(path.length < pixelStrings.length) {
+        //console.log(path.length);
+        const curPixel = pixelStrings[pixelIndex];
+        for(let i = sampleInterval; i < (depth + 1) * sampleInterval; i += sampleInterval) {
+            var searchPixels = [];
+            const pixelVals = curPixel.split(",");
+            const pixelX = parseInt(pixelVals[0]);
+            const pixelY = parseInt(pixelVals[1]);
+            for(let j = -i; j < i + 1; j += sampleInterval) {
+                searchPixels[searchPixels.length] = (pixelX - i) + "," + (pixelY + j);
+                searchPixels[searchPixels.length] = (pixelX + i) + "," + (pixelY + j);
+                searchPixels[searchPixels.length] = (pixelX + j) + "," + (pixelY - i);
+                searchPixels[searchPixels.length] = (pixelX + j) + "," + (pixelY + i);
+            }
+            var found = false;
+            for(let j = 0; j < searchPixels.length; j++) {
+                var foundIndex = pixelStrings.indexOf(searchPixels[j]);
+                if(foundIndex !== -1) {
+                    if(!path.includes(searchPixels[j])) {
+                        found = true;
+                        pixelIndex = foundIndex;
+                        break;
+                    }
+                }
+            }
+            if(found) {
+                path[path.length] = pixelStrings[pixelIndex];
+                backtrackCount = 0;
+                break;
+            }
+        }
+        if(!found) {
+            backtrackCount++;
+            pixelIndex = pixelStrings.indexOf(path[path.length - 2*backtrackCount]); // Backtrack to previous pixel
+            path[path.length] = pixelStrings[pixelIndex];
+        }
+    }
+    return StringToPixels(path);
+}
+
+function PixelsToString(pixels) {
+
+    var pixelStrings = new Array(pixels.length);
+    for(let i = 0; i < pixels.length; i++) {
+        pixelStrings[i] = pixels[i][0] + "," + pixels[i][1];
+    }
+    return pixelStrings;
+}
+
+function StringToPixels(pixelStrings) {
+
+    var pixels = new Array(pixelStrings.length);
+    for(let i = 0; i < pixelStrings.length; i++) {
+        pixels[i] = pixelStrings[i].split(",");
+    }
+    return pixels;
 }
 
 function uniform_array(len, value) {

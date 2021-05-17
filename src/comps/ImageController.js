@@ -37,7 +37,7 @@ const ImageController = () => {
 
         if(appState === 2) {
             const processor = new window.Worker("./ImageProcessor.js");
-            processor.postMessage({ imageData, denoiseThreshold: 100 });
+            processor.postMessage({ imageData, denoiseThreshold: 50, sampleInterval: 4 });
             processor.onmessage = (e) => {
 
                 var outputData = e.data;
@@ -46,7 +46,7 @@ const ImageController = () => {
                 }
                 else if(outputData) {
                     setImageData(outputData);
-                    setAppState(5);
+                    setAppState(6);
                 }
             };
         }
