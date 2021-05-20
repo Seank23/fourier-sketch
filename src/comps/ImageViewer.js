@@ -1,22 +1,26 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useRef } from 'react';
 import { Card } from 'react-bootstrap';
-import { AppStateCtx, ImageDataCtx } from '../Contexts';
+import { AppStateCtx, ImageDataCtx, ProgressCtx } from '../Contexts';
 import ProgressBar from './ProgressBar';
+import SketchHandler from './SketchHandler';
 
 const ImageViewer = (img) => {
     
+    const CANVAS_WIDTH = 1280;
+    const CANVAS_HEIGHT = 720;
+
     var imgElem = img['img'];
     const { appState } = useContext(AppStateCtx);
+    const { progress } = useContext(ProgressCtx);
     const [imageLoaded, setImageLoaded] = useState(false);
     const [message, setMessage] = useState(""); 
     const [coords, setCoords] = useState([0, 0]);
     const [dim, setDim] = useState(0, 0);
 
-
     const { imageData, setImageData } = useContext(ImageDataCtx);
 
-    const canvasRef = React.useRef(null);
-    const measureRef = React.useRef(null);
+    const canvasRef = useRef(null);
+    const measureRef = useRef(null);
 
     const getImageDimensions = (img, measureDiv, canvas) => {
         
@@ -76,20 +80,27 @@ const ImageViewer = (img) => {
 
     useEffect(() => {
 
-        if(appState === 3) {
-            setImageLoaded(false);
-            setMessage("Preprocessing Image...");
-        }
-        else if(appState === 4) {
-            setImageLoaded(false);
-            setMessage("Extracting Edges...");
-        }
-        else if(appState === 5) {
-            setImageLoaded(false);
-            setMessage("Tracing Path...");
-        }
-        else if(appState === 6) {
-            setImageLoaded(true);
+        switch(appState) {
+            case 3:
+                setImageLoaded(false);
+                setMessage("Preprocessing Image...");
+                break;
+            case 4:
+                setImageLoaded(false);
+                setMessage("Extracting Edges...");
+                break;
+            case 5:
+                setImageLoaded(false);
+                setMessage("Tracing Path...");
+                break;
+            case 6:
+                setImageLoaded(false);
+                setMessage("Calculating Sketch Path...");
+                break;
+            case 7:
+                setImageLoaded(true);
+                break;
+            default:
         }
     }, [appState]);
 
@@ -97,8 +108,9 @@ const ImageViewer = (img) => {
         <div>
             <div className="measure" ref={measureRef}></div>
             <Card body className="viewer-container shadow">
-                { !imageLoaded && <ProgressBar message={message} progress={null} /> }
-                <canvas className="img-container" width={1280} height={720} ref={canvasRef} hidden={!imageLoaded}></canvas>
+                { !imageLoaded && <ProgressBar message={message} progress={progress} /> }
+                { appState < 7 && <canvas className="img-container" width={CANVAS_WIDTH} height={CANVAS_HEIGHT} ref={canvasRef} hidden={!imageLoaded}></canvas> }
+                { appState === 7 && <SketchHandler width={CANVAS_WIDTH} height={CANVAS_HEIGHT} /> }
             </Card>
         </div>
     )

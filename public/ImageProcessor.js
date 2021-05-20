@@ -1,28 +1,28 @@
+var path;
+var outputImg;
+var dimensions;
 
 onmessage = (e) => {
-    var { imageData, denoiseThreshold, sampleInterval } = e.data;
-    postMessage(3);
-    var imgMatrix = ImageDataToMatrix(ToGrayscale(imageData));
-    postMessage(4);
-    var denoiseSobel = DenoiseImage(ConvolveSobel(imgMatrix), denoiseThreshold);
-    postMessage(5);
-    var sampledPixels = GetSampledPixels(denoiseSobel, sampleInterval);
-    var startT = Date.now();
-    console.log(sampledPixels.length);
-    var path = GetPath(sampledPixels, sampleInterval, 100);
-    console.log(Date.now() - startT);
-    var sampledImg = new Array(denoiseSobel.length);
-    for(let i = 0; i < sampledImg.length; i++) {
-        sampledImg[i] = new Array(denoiseSobel[0].length);
-        for(let j = 0; j < sampledImg[i].length; j++) {
-            sampledImg[i][j] = 0;
-        }
+    if(e.data['stage'] === 0) {
+        var { imageData, denoiseThreshold, sampleInterval } = e.data;
+        dimensions = [imageData.width, imageData.height];
+        postMessage(["state", 3]);
+        var imgMatrix = ImageDataToMatrix(ToGrayscale(imageData));
+        postMessage(["state", 4]);
+        var denoiseSobel = DenoiseImage(ConvolveSobel(imgMatrix), denoiseThreshold);
+        postMessage(["state", 5]);
+        var sampledPixels = GetSampledPixels(denoiseSobel, sampleInterval);
+        path = GetPath(sampledPixels, sampleInterval, 400);
+        var sampledImg = GetPathCoverage(path, denoiseSobel[0].length, denoiseSobel.length);
+        outputImg = MatrixToImageData(sampledImg);
+        postMessage(["pathDFT", path]);
     }
-    for(let i = 0; i < path.length; i++) {
-        sampledImg[path[i][0]][path[i][1]] = 255;
+    else if(e.data['stage'] === 1) {
+        var { pathDFT } = e.data;
+        postMessage(["state", 6]);
+        var sketchPath = CalculateSketchPath(pathDFT);
+        postMessage(["output", [outputImg, [sketchPath, dimensions]]]);
     }
-    var outputImg = MatrixToImageData(sampledImg);
-    postMessage(outputImg);
 }
 
 function ToGrayscale(imageData) {
@@ -90,8 +90,6 @@ function DenoiseImage(imgMatrix, threshold) {
 
 function ConvolveSobel(imgMatrix) {
 
-    //var outX = convolveSeparable(imgMatrix, [1, 0, -1], [1, 2, 1])
-    //var outY = convolveSeparable(imgMatrix, [1, 2, 1], [1, 0, -1])
     var outX = conv_2d([[1,0,-1],[2,0,-2],[1,0,-1]], imgMatrix);
     var outY = conv_2d([[1,2,1],[0,0,0],[-1,-2,-1]], imgMatrix);
     for(let i = 0; i < outX.length; i++) {
@@ -130,7 +128,7 @@ function GetPath(pixels, sampleInterval, depth) {
     path[0] = pixelStrings[0];
     var backtrackCount = 0;
     while(path.length < pixelStrings.length) {
-        //console.log(path.length);
+        if(path.length % 100 === 0) { postMessage(["progress", (path.length / pixelStrings.length) * 100]) }
         const curPixel = pixelStrings[pixelIndex];
         for(let i = sampleInterval; i < (depth + 1) * sampleInterval; i += sampleInterval) {
             var searchPixels = [];
@@ -164,8 +162,11 @@ function GetPath(pixels, sampleInterval, depth) {
             backtrackCount++;
             pixelIndex = pixelStrings.indexOf(path[path.length - 2*backtrackCount]); // Backtrack to previous pixel
             path[path.length] = pixelStrings[pixelIndex];
+            console.log("Backtracking: " + backtrackCount);
+            break;
         }
     }
+    postMessage(["progress", null]);
     return StringToPixels(path);
 }
 
@@ -182,9 +183,48 @@ function StringToPixels(pixelStrings) {
 
     var pixels = new Array(pixelStrings.length);
     for(let i = 0; i < pixelStrings.length; i++) {
-        pixels[i] = pixelStrings[i].split(",");
+        let strings = pixelStrings[i].split(",");
+        pixels[i] = new Array(2);
+        pixels[i][0] = parseInt(strings[0]);
+        pixels[i][1] = parseInt(strings[1]);
     }
     return pixels;
+}
+
+function GetPathCoverage(path, imgWidth, imgHeight) {
+
+    var sampledImg = new Array(imgHeight);
+    for(let i = 0; i < sampledImg.length; i++) {
+        sampledImg[i] = new Array(imgWidth);
+        for(let j = 0; j < sampledImg[i].length; j++) {
+            sampledImg[i][j] = 0;
+        }
+    }
+    for(let i = 0; i < path.length; i++) {
+        sampledImg[path[i][0]][path[i][1]] = 255;
+    }
+    return sampledImg;
+}
+
+function CalculateSketchPath(pathDFT) {
+    
+    let Xx = pathDFT[0];
+    let Xy = pathDFT[1];
+    let time = 0;
+    let sketchPath = [];
+
+    for(let i = 0; i < Xx.length; i++) {
+        if(i % 100 === 0) { postMessage(["progress", (i / Xx.length) * 100]) }
+        let coords = [0, 0];
+        for(let j = 0; j < Xx.length; j++) {
+            coords[0] += Xx[j].amp * Math.cos(Xx[j].freq * time + Xx[j].phase);
+			coords[1] += Xy[j].amp * Math.sin(Xy[j].freq * time + Xy[j].phase + Math.PI/2);
+        }
+        sketchPath.push(coords);
+        time += 2*Math.PI / Xx.length;
+    }
+    postMessage(["progress", null]);
+    return sketchPath;
 }
 
 function uniform_array(len, value) {
@@ -220,40 +260,3 @@ function conv_2d(kernel, array) {
     };
     return result;
 };
-
-/*function convolveSeparable(img, kernelVec1, kernelVec2) {
-    
-    var conv = new Array(img.length);
-    for(let i = 0; i < img.length; i++) {
-        conv[i] = new Array(img[i].length);
-        for(let j = 0; j < img[i].length; j++) {
-            var start = j - kernelVec1.length + 1;
-            for(let k = 0; k < kernelVec1.length; k++) {
-                if(start + k >= 0 && start + k < img[i].length) {
-                    if(conv[i][j]) {
-                        conv[i][j] += img[i][start + k] * kernelVec1[k];
-                    } else {
-                        conv[i][j] = img[i][start + k] * kernelVec1[k];
-                    }
-                }
-            }
-        }
-    }
-
-    for(let i = 0; i < img[0].length; i++) {
-        for(let j = 0; j < img.length; j++) {
-            start = j - kernelVec2.length + 1;
-            for(let k = 0; k < kernelVec2.length; k++) {
-                if(start + k >= 0 && start + k < img.length) {
-                    if(conv[j][i]) {
-                        conv[j][i] += img[start + k][i] * kernelVec1[k];
-                    } else {
-                        conv[j][i] = img[start + k][i] * kernelVec1[k];
-                    }
-                }
-            }
-        }
-    }
-
-    return conv;
-}*/

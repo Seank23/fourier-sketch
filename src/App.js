@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { AppStateCtx } from './Contexts'
+import { AppStateCtx, ProgressCtx, SketchPathCtx } from './Contexts'
 import Title from './comps/Title';
 import Cookies from 'universal-cookie';
 import ImageUIPanel from './comps/ImageUIPanel';
 import UploadImage from './comps/UploadImage';
 import ImageController from './comps/ImageController';
+
 
 const cookies = new Cookies();
 setInterval(function() {
@@ -15,6 +16,10 @@ function App() {
 
   const [appState, setAppState] = useState(0);
   const appStateProvider = useMemo(() => ({appState, setAppState}), [appState, setAppState]);
+  const [sketchPath, setSketchPath] = useState([]);
+  const sketchPathProvider = useMemo(() => ({sketchPath, setSketchPath}), [sketchPath, setSketchPath]);
+  const [progress, setProgress] = useState(null);
+  const progressProvider = useMemo(() => ({progress, setProgress}), [progress, setProgress]);
 
   if(cookies.get('imageId') && appState === 0) {
     setAppState(1);
@@ -24,9 +29,13 @@ function App() {
     <div className="App">
       <Title/>
       <AppStateCtx.Provider value={appStateProvider}>
-        <ImageUIPanel/>
-        { appState === 0 && <UploadImage/> }
-        { appState > 0 && <ImageController/> }
+        <SketchPathCtx.Provider value={sketchPathProvider}>
+          <ProgressCtx.Provider value={progressProvider}>
+            <ImageUIPanel/>
+            { appState === 0 && <UploadImage/> }
+            { appState > 0 && <ImageController/> }
+          </ProgressCtx.Provider>
+        </SketchPathCtx.Provider>
       </AppStateCtx.Provider>
     </div>
   );

@@ -73,6 +73,13 @@ label input{
   display: block;
 }
 
+.p5Canvas {
+  padding: 20px;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
  .measure {
   position: absolute;
   left: -10000px;
