@@ -10,9 +10,9 @@ const ClearImage = () => {
     const { setSketchPath } = useContext(SketchPathCtx);
 
     const onClear = () => {
-        setAppState(0);
         setSketchPath([]);
         cookies.set('imageId', '', { path: '/', maxAge: 1800 });
+        setAppState(0);
     }
 
     return (

@@ -11,8 +11,8 @@ const ImageUIPanel = () => {
     return ( 
         <Card className="ImageUIPanel">
             <Card.Header>
-            { appState === 0  && <span id="welcomeText">Welcome to FourierSketch, upload an image to start!</span>}
-            { appState > 0  && <div><GenerateSketch/><ClearImage/></div>}
+            { appState === 0  && <span id="welcomeText">Welcome to FourierSketch, upload an image to start!</span> }
+            { appState > 0  && <div><GenerateSketch/><ClearImage/></div> }
             </Card.Header>
         </Card>
     );

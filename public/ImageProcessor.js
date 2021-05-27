@@ -4,23 +4,27 @@ var dimensions;
 
 onmessage = (e) => {
     if(e.data['stage'] === 0) {
-        var { imageData, denoiseThreshold, sampleInterval } = e.data;
+        let { imageData, denoiseThreshold } = e.data;
         dimensions = [imageData.width, imageData.height];
         postMessage(["state", 3]);
-        var imgMatrix = ImageDataToMatrix(ToGrayscale(imageData));
+        let imgMatrix = ImageDataToMatrix(ToGrayscale(imageData));
         postMessage(["state", 4]);
-        var denoiseSobel = DenoiseImage(ConvolveSobel(imgMatrix), denoiseThreshold);
-        postMessage(["state", 5]);
-        var sampledPixels = GetSampledPixels(denoiseSobel, sampleInterval);
+        let denoiseSobel = DenoiseImage(ConvolveSobel(imgMatrix), denoiseThreshold);
+        outputImg = MatrixToImageData(denoiseSobel);
+        postMessage(["output", outputImg]);
+    }
+    else if(e.data['stage'] === 1) {
+        let { imageData, sampleInterval } = e.data;
+        let sampledPixels = GetSampledPixels(ImageDataToMatrix(imageData), sampleInterval);
         path = GetPath(sampledPixels, sampleInterval, 400);
-        var sampledImg = GetPathCoverage(path, denoiseSobel[0].length, denoiseSobel.length);
+        let sampledImg = GetPathCoverage(path, imageData.width, imageData.height);
         outputImg = MatrixToImageData(sampledImg);
         postMessage(["pathDFT", path]);
     }
-    else if(e.data['stage'] === 1) {
-        var { pathDFT } = e.data;
-        postMessage(["state", 6]);
-        var sketchPath = CalculateSketchPath(pathDFT);
+    else if(e.data['stage'] === 2) {
+        let { pathDFT } = e.data;
+        postMessage(["state", 7]);
+        let sketchPath = CalculateSketchPath(pathDFT);
         postMessage(["output", [outputImg, [sketchPath, dimensions]]]);
     }
 }

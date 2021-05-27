@@ -33,7 +33,7 @@ function App() {
           <ProgressCtx.Provider value={progressProvider}>
             <ImageUIPanel/>
             { appState === 0 && <UploadImage/> }
-            { appState > 0 && <ImageController/> }
+            <ImageController/>
           </ProgressCtx.Provider>
         </SketchPathCtx.Provider>
       </AppStateCtx.Provider>

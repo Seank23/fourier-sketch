@@ -6,8 +6,8 @@ const SketchHandler = ({width, height}) => {
 
 	const { sketchPath } = useContext(SketchPathCtx);
 
-	const paddingX = 50;
-	const paddingY = 50;
+	const paddingX = 0;
+	const paddingY = 0;
 	let scale = useRef(1);
 	let offset = useRef([0, 0]);
 	let sketchOut = useRef([]);
@@ -19,9 +19,8 @@ const SketchHandler = ({width, height}) => {
 		sketchOut.current = sketchPath[0];
 		var imgDims = sketchPath[1];
 		if(imgDims) {
-			if(imgDims[0] > imgDims[1]) {
-				scale.current = (width - 2*paddingX) / imgDims[0];
-			} else {
+			scale.current = (width - 2*paddingX) / imgDims[0];
+			if(scale.current * imgDims[1] > (height - 2*paddingY)) {
 				scale.current = (height - 2*paddingY) / imgDims[1];
 			}
 			offset.current[0] = -sketchOut.current[sketchOut.current.length - 1][0] + paddingX + (((width - 2*paddingX) - imgDims[0]*scale.current) / 2);
@@ -50,7 +49,6 @@ const SketchHandler = ({width, height}) => {
 	const draw = (p5) => {
 
 		if(isDrawing.current) {
-
 			p5.background(255);
 			if(sketchOut.current.length > 0) {
 				

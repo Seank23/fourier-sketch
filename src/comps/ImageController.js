@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useContext, useMemo } from 'react';
+import React, { useState, useEffect, useContext, useMemo, useRef } from 'react';
 import { AppStateCtx, ImageDataCtx, ProgressCtx, SketchPathCtx } from '../Contexts';
 import ImageViewer from './ImageViewer';
 import useFirestore from '../hooks/useFirestore';
 
 const FFT = require('fft.js');
+var processor = new Worker("./ImageProcessor.js", { type: "module" });
 
 const ImageController = () => {
 
@@ -12,6 +13,7 @@ const ImageController = () => {
     const { setProgress } = useContext(ProgressCtx);
     const [prevUrl, setPrevUrl] = useState(null);
     const [img, setImg] = useState(null);
+    const isProcessing = useRef(false);
 
     const [imageData, setImageData] = useState(null);
     const imageDataProvider = useMemo(() => ({ imageData, setImageData }), [imageData, setImageData]);
@@ -80,9 +82,38 @@ const ImageController = () => {
 
     useEffect(() => {
 
-        if(appState === 2) {
-            const processor = new Worker("./ImageProcessor.js", { type: "module" });
-            processor.postMessage({ stage: 0, imageData: imageData, denoiseThreshold: 100, sampleInterval: 2 });
+        if(appState === 0) {
+            if(processor) {
+                processor.terminate();
+                processor = undefined;
+                isProcessing.current = false;
+            }
+        }
+        if(appState === 2 && !isProcessing.current) {
+            isProcessing.current = true;
+            if(processor === undefined) {
+                processor = new Worker("./ImageProcessor.js", { type: "module" });
+            }
+            processor.postMessage({ stage: 0, imageData: imageData, denoiseThreshold: 100 });
+            processor.onmessage = (e) => {
+
+                var outputData = e.data;
+                switch(outputData[0]) {
+                    case "state":
+                        setAppState(outputData[1]);
+                        break;
+                    case "output":
+                        setImageData(outputData[1]);
+                        setAppState(5);
+                        isProcessing.current = false;
+                        break;
+                    default:
+                }
+            };
+        }
+        else if(appState === 6 && !isProcessing.current) {
+            isProcessing.current = true;
+            processor.postMessage({ stage: 1, imageData: imageData, sampleInterval: 2 });
             processor.onmessage = (e) => {
 
                 var outputData = e.data;
@@ -95,22 +126,23 @@ const ImageController = () => {
                         break;
                     case "pathDFT":
                         let pathDFT = GetPathDFT(outputData[1]);
-                        processor.postMessage({ stage: 1, pathDFT: pathDFT });
+                        processor.postMessage({ stage: 2, pathDFT: pathDFT });
                         break;
                     case "output":
                         setImageData(outputData[1][0]);
                         setSketchPath(outputData[1][1]);
-                        setAppState(7);
+                        setAppState(8);
+                        isProcessing.current = false;
                         break;
                     default:
                 }
             };
         }
-    }, [appState, imageData, setAppState, setSketchPath]);
+    }, [appState]);
 
     return (
         <ImageDataCtx.Provider value={imageDataProvider}>
-            <ImageViewer img={img} />
+            {appState > 0 && <ImageViewer img={img} /> }
         </ImageDataCtx.Provider> 
      );
 }
