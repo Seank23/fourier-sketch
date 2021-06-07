@@ -3,6 +3,7 @@ import { Card } from 'react-bootstrap';
 import { AppStateCtx } from '../Contexts';
 import ClearImage from './ClearImage';
 import GenerateSketch from './GenerateSketch';
+import OptionsPanel from './OptionsPanel';
 
 const ImageUIPanel = () => {
 
@@ -12,7 +13,7 @@ const ImageUIPanel = () => {
         <Card className="ImageUIPanel">
             <Card.Header>
             { appState === 0  && <span id="welcomeText">Welcome to FourierSketch, upload an image to start!</span> }
-            { appState > 0  && <div><GenerateSketch/><ClearImage/></div> }
+            { appState > 0  && <div className="flex-row"><OptionsPanel/><div className="buttonContainer"><GenerateSketch/><ClearImage/></div></div> }
             </Card.Header>
         </Card>
     );

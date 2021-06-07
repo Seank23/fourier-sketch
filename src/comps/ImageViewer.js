@@ -50,7 +50,7 @@ const ImageViewer = (img) => {
                 fullSize.width = imgElem.width;
                 fullSize.height = imgElem.height;
                 fullSizeCtx.drawImage(imgElem, 0, 0, imgElem.width, imgElem.height);
-                setImageData(fullSizeCtx.getImageData(0, 0, imgElem.width, imgElem.height));
+                setImageData({0: fullSizeCtx.getImageData(0, 0, imgElem.width, imgElem.height), 1: null, 2: null});
 
                 // Fit image to canvas
                 var dim = getImageDimensions(imgElem, measureRef.current, canvas);
@@ -62,7 +62,7 @@ const ImageViewer = (img) => {
                 setImageLoaded(true);
             } else {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                setImageData(null);
+                setImageData({0: null, 1: null, 2: null});
             }
         }
     }, [imgElem, setImageData]);
@@ -73,7 +73,12 @@ const ImageViewer = (img) => {
         if(canvas && appState > 2) {
             const ctx = canvas.getContext("2d");
             if(imageData) {
-                createImageBitmap(imageData).then(renderer => ctx.drawImage(renderer, coords[0], coords[1], dim[0], dim[1]));
+                if(appState === 1) {
+                    createImageBitmap(imageData[0]).then(renderer => ctx.drawImage(renderer, coords[0], coords[1], dim[0], dim[1]));
+                }
+                else if(appState === 5) {
+                    createImageBitmap(imageData[1]).then(renderer => ctx.drawImage(renderer, coords[0], coords[1], dim[0], dim[1]));
+                }
             }
         }
     }, [appState, coords, dim, imageData]);

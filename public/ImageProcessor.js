@@ -14,9 +14,9 @@ onmessage = (e) => {
         postMessage(["output", outputImg]);
     }
     else if(e.data['stage'] === 1) {
-        let { imageData, sampleInterval } = e.data;
+        let { imageData, sampleInterval, pathDepth } = e.data;
         let sampledPixels = GetSampledPixels(ImageDataToMatrix(imageData), sampleInterval);
-        path = GetPath(sampledPixels, sampleInterval, 400);
+        path = GetPath(sampledPixels, sampleInterval, pathDepth);
         let sampledImg = GetPathCoverage(path, imageData.width, imageData.height);
         outputImg = MatrixToImageData(sampledImg);
         postMessage(["pathDFT", path]);

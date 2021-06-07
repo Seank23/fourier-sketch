@@ -1,19 +1,18 @@
-import React, { useContext, useEffect, useRef } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import Sketch from "react-p5";
-import { SketchPathCtx } from '../Contexts';
+import { SketchOptionsCtx, SketchPathCtx } from '../Contexts';
     
 const SketchHandler = ({width, height}) => {
 
 	const { sketchPath } = useContext(SketchPathCtx);
+	const { sketchOptions, setSketchOptions } = useContext(SketchOptionsCtx);
 
 	const paddingX = 0;
 	const paddingY = 0;
 	let scale = useRef(1);
 	let offset = useRef([0, 0]);
 	let sketchOut = useRef([]);
-	let time = 0;
-	let sketchSpeed = 50;
-	let isDrawing = useRef(false);
+	const [time, setTime] = useState(0);
 
 	useEffect(() => {
 		sketchOut.current = sketchPath[0];
@@ -25,9 +24,15 @@ const SketchHandler = ({width, height}) => {
 			}
 			offset.current[0] = -sketchOut.current[sketchOut.current.length - 1][0] + paddingX + (((width - 2*paddingX) - imgDims[0]*scale.current) / 2);
 			offset.current[1] = -sketchOut.current[sketchOut.current.length - 1][1] + paddingY + (((height - 2*paddingY) - imgDims[1]*scale.current) / 2);
-			isDrawing.current = true;
+			updateOptions('isDrawing', 1);
 		}
 	}, [height, sketchPath, width]);
+
+	const updateOptions = (key, val) => {
+        let options = Object.assign({}, sketchOptions);
+        options[key] = parseInt(val);
+        setSketchOptions(options);
+    }
 
 	const setup = (p5, canvasParentRef) => {
 		p5.createCanvas(width, height).parent(canvasParentRef);
@@ -47,8 +52,7 @@ const SketchHandler = ({width, height}) => {
 	}
 
 	const draw = (p5) => {
-
-		if(isDrawing.current) {
+		if(sketchOptions['isDrawing'] === 1) {
 			p5.background(255);
 			if(sketchOut.current.length > 0) {
 				
@@ -64,9 +68,10 @@ const SketchHandler = ({width, height}) => {
 					p5.vertex((sketchOut.current[i][0] * scale.current) + offset.current[0], (sketchOut.current[i][1] * scale.current) + offset.current[1]);
 				}
 				p5.endShape();
-				time += sketchSpeed;
-				if(time >= sketchOut.current.length - 1) {
-					isDrawing.current = false;
+				setTime(time + sketchOptions['sketchSpeed']);
+				if(time + sketchOptions['sketchSpeed'] >= sketchOut.current.length - 1) {
+					updateOptions('isDrawing', 0);
+					setTime(0);
 				}
 			}
 		}

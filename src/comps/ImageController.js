@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useMemo, useRef } from 'react';
-import { AppStateCtx, ImageDataCtx, ProgressCtx, SketchPathCtx } from '../Contexts';
+import { AppStateCtx, ImageDataCtx, ProgressCtx, SketchOptionsCtx, SketchPathCtx } from '../Contexts';
 import ImageViewer from './ImageViewer';
 import useFirestore from '../hooks/useFirestore';
 
@@ -11,11 +11,12 @@ const ImageController = () => {
     const { appState, setAppState } = useContext(AppStateCtx);
     const { setSketchPath } = useContext(SketchPathCtx);
     const { setProgress } = useContext(ProgressCtx);
+    const { sketchOptions } = useContext(SketchOptionsCtx);
     const [prevUrl, setPrevUrl] = useState(null);
     const [img, setImg] = useState(null);
     const isProcessing = useRef(false);
 
-    const [imageData, setImageData] = useState(null);
+    const [imageData, setImageData] = useState({0: null, 1: null, 2: null});
     const imageDataProvider = useMemo(() => ({ imageData, setImageData }), [imageData, setImageData]);
 
     const { doc } = useFirestore('images');
@@ -61,6 +62,13 @@ const ImageController = () => {
         return X;
     }
 
+    const updateImageData = (key, val) => {
+
+        let data = Object.assign({}, imageData);
+        data[key] = val;
+        setImageData(data);
+    }
+
     useEffect(() => {
 
         if(doc) {
@@ -94,7 +102,7 @@ const ImageController = () => {
             if(processor === undefined) {
                 processor = new Worker("./ImageProcessor.js", { type: "module" });
             }
-            processor.postMessage({ stage: 0, imageData: imageData, denoiseThreshold: 100 });
+            processor.postMessage({ stage: 0, imageData: imageData[0], denoiseThreshold: sketchOptions['denoiseThreshold'] });
             processor.onmessage = (e) => {
 
                 var outputData = e.data;
@@ -103,7 +111,7 @@ const ImageController = () => {
                         setAppState(outputData[1]);
                         break;
                     case "output":
-                        setImageData(outputData[1]);
+                        updateImageData(1, outputData[1]);
                         setAppState(5);
                         isProcessing.current = false;
                         break;
@@ -113,7 +121,7 @@ const ImageController = () => {
         }
         else if(appState === 6 && !isProcessing.current) {
             isProcessing.current = true;
-            processor.postMessage({ stage: 1, imageData: imageData, sampleInterval: 2 });
+            processor.postMessage({ stage: 1, imageData: imageData[1], sampleInterval: sketchOptions['sampleInterval'], pathDepth: sketchOptions['pathDepth'] });
             processor.onmessage = (e) => {
 
                 var outputData = e.data;
@@ -129,7 +137,7 @@ const ImageController = () => {
                         processor.postMessage({ stage: 2, pathDFT: pathDFT });
                         break;
                     case "output":
-                        setImageData(outputData[1][0]);
+                        updateImageData(2, outputData[1][0]);
                         setSketchPath(outputData[1][1]);
                         setAppState(8);
                         isProcessing.current = false;
@@ -142,7 +150,7 @@ const ImageController = () => {
 
     return (
         <ImageDataCtx.Provider value={imageDataProvider}>
-            {appState > 0 && <ImageViewer img={img} /> }
+            { appState > 0 && <ImageViewer img={img} /> }
         </ImageDataCtx.Provider> 
      );
 }

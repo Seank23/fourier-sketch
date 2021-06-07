@@ -1,37 +1,45 @@
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Button } from 'react-bootstrap';
-import { AppStateCtx } from '../Contexts';
+import { AppStateCtx, SketchOptionsCtx } from '../Contexts';
 
 const GenerateSketch = () => {
 
     const { appState, setAppState } = useContext(AppStateCtx);
-    const textRef = useRef("Obtain Outline");
-    const disabledRef = useRef(false);
+    const { sketchOptions, setSketchOptions } = useContext(SketchOptionsCtx);
+    const [text, setText] = useState("");
+    const [disabled, setDisabled] = useState(false);
 
     useEffect(() => {
-        if(appState === 0) {
-            disabledRef.current = false;
-            textRef.current = "Obtain Outline";
+        if(appState === 1) {
+            setDisabled(false);
+            setText("Obtain Outline");
         }
-        else if (appState === 4) {
-            disabledRef.current = false;
-            textRef.current = "Generate Sketch";
+        else if (appState === 5) {
+            setDisabled(false);
+            setText("Generate Sketch");
         }
     }, [appState]);
 
     const onClick = () => {
         if(appState === 1) {
             setAppState(2);
-            disabledRef.current = true;
+            setDisabled(true);
         }
         else if(appState === 5) {
             setAppState(6);
-            disabledRef.current = true;
+            setDisabled(true);
         }
     }
 
+    const onRestart = () => {
+        let options = Object.assign({}, sketchOptions);
+        options['isDrawing'] = 1;
+        setSketchOptions(options);
+    }
+
     return ( 
-        <Button variant="outline-primary" onClick={onClick} disabled={disabledRef.current}>{textRef.current}</Button>
+        ( (appState < 8 && <Button className="sketchButton" variant="outline-primary" onClick={onClick} disabled={disabled}>{text}</Button>)
+        || (appState === 8 && <Button className="sketchButton" variant="outline-success" onClick={onRestart}>Restart Sketch</Button>) )
      );
 }
  
