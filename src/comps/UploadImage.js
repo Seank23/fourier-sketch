@@ -40,7 +40,7 @@ const UploadImage = () => {
             reader.onload = function (readerEvent) {
                 var image = new Image();
                 image.onload = () => {
-                    var canvas = document.createElement('canvas'), max_size = 1920, width = image.width, height = image.height;
+                    var canvas = document.createElement('canvas'), max_size = 1600, width = image.width, height = image.height;
                     if (width > height) {
                         if (width > max_size) {
                             height *= max_size / width;

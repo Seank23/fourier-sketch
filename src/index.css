@@ -181,6 +181,12 @@ label input{
   width: 160px;
 }
 
+#headerProgress {
+  width: 70%;
+  padding-top: 10px;
+  text-align: center;
+}
+
 .lds-ring {
   display: inline-block;
   position: relative;
@@ -209,6 +215,43 @@ label input{
   animation-delay: -0.15s;
 }
 @keyframes lds-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.lds-ring-small {
+  margin-right: 20px;
+  display: inline-block;
+  position: relative;
+  width: 40px;
+  height: 40px;
+}
+.lds-ring-small div {
+  box-sizing: border-box;
+  display: block;
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  margin: 4px;
+  border: 4px solid var(--primary);
+  border-radius: 50%;
+  animation: lds-ring-small 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  border-color: var(--primary) transparent transparent transparent;
+}
+.lds-ring-small div:nth-child(1) {
+  animation-delay: -0.45s;
+}
+.lds-ring-small div:nth-child(2) {
+  animation-delay: -0.3s;
+}
+.lds-ring-small div:nth-child(3) {
+  animation-delay: -0.15s;
+}
+@keyframes lds-ring-small {
   0% {
     transform: rotate(0deg);
   }

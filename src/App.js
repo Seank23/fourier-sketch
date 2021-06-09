@@ -5,7 +5,6 @@ import Cookies from 'universal-cookie';
 import ImageUIPanel from './comps/ImageUIPanel';
 import UploadImage from './comps/UploadImage';
 import ImageController from './comps/ImageController';
-import OptionsPanel from './comps/OptionsPanel';
 
 
 const cookies = new Cookies();
@@ -21,7 +20,7 @@ function App() {
   const sketchPathProvider = useMemo(() => ({sketchPath, setSketchPath}), [sketchPath, setSketchPath]);
   const [progress, setProgress] = useState(null);
   const progressProvider = useMemo(() => ({progress, setProgress}), [progress, setProgress]);
-  const [sketchOptions, setSketchOptions] = useState({ denoiseThreshold: 100, sampleInterval: 2, pathDepth: 400, coefficients: 1000, sketchSpeed: 50, isDrawing: 0 });
+  const [sketchOptions, setSketchOptions] = useState({ denoiseThreshold: 100, sampleInterval: 2, pathDepth: 400, selectedResLevel: 0, resLevels: 1, sketchSpeed: 50, restartDrawing: 0 });
   const sketchOptionsProvider = useMemo(() => ({sketchOptions, setSketchOptions}), [sketchOptions, setSketchOptions]);
 
   if(cookies.get('imageId') && appState === 0) {

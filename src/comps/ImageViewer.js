@@ -101,10 +101,6 @@ const ImageViewer = (img) => {
                 setMessage("Tracing Path...");
                 break;
             case 7:
-                setImageLoaded(false);
-                setMessage("Calculating Sketch Path...");
-                break;
-            case 8:
                 setImageLoaded(true);
                 break;
             default:
@@ -116,8 +112,8 @@ const ImageViewer = (img) => {
             <div className="measure" ref={measureRef}></div>
             <Card body className="viewer-container shadow">
                 { !imageLoaded && <ProgressBar message={message} progress={progress} /> }
-                { appState < 8 && <canvas className="img-container" width={CANVAS_WIDTH} height={CANVAS_HEIGHT} ref={canvasRef} hidden={!imageLoaded}></canvas> }
-                { appState === 8 && <SketchHandler width={CANVAS_WIDTH} height={CANVAS_HEIGHT} /> }
+                { appState < 7 && <canvas className="img-container" width={CANVAS_WIDTH} height={CANVAS_HEIGHT} ref={canvasRef} hidden={!imageLoaded}></canvas> }
+                { appState >= 7 && <SketchHandler width={CANVAS_WIDTH} height={CANVAS_HEIGHT} /> }
             </Card>
         </div>
     )

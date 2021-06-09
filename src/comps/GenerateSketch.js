@@ -33,13 +33,13 @@ const GenerateSketch = () => {
 
     const onRestart = () => {
         let options = Object.assign({}, sketchOptions);
-        options['isDrawing'] = 1;
+        options['restartDrawing'] = 1;
         setSketchOptions(options);
     }
 
     return ( 
-        ( (appState < 8 && <Button className="sketchButton" variant="outline-primary" onClick={onClick} disabled={disabled}>{text}</Button>)
-        || (appState === 8 && <Button className="sketchButton" variant="outline-success" onClick={onRestart}>Restart Sketch</Button>) )
+        ( (appState < 7 && <Button className="sketchButton" variant="outline-primary" onClick={onClick} disabled={disabled}>{text}</Button>)
+        || (appState >= 7 && <Button className="sketchButton" variant="outline-success" onClick={onRestart} disabled={appState === 8 ? false : true}>Restart Sketch</Button>) )
      );
 }
  

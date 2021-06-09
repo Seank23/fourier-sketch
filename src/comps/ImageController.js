@@ -132,14 +132,10 @@ const ImageController = () => {
                     case "progress":
                         setProgress(outputData[1]);
                         break;
-                    case "pathDFT":
-                        let pathDFT = GetPathDFT(outputData[1]);
-                        processor.postMessage({ stage: 2, pathDFT: pathDFT });
-                        break;
                     case "output":
-                        updateImageData(2, outputData[1][0]);
-                        setSketchPath(outputData[1][1]);
-                        setAppState(8);
+                        let pathDFT = GetPathDFT(outputData[1][0]);
+                        setAppState(7);
+                        setSketchPath([pathDFT, outputData[1][0].length, outputData[1][1]]);
                         isProcessing.current = false;
                         break;
                     default:

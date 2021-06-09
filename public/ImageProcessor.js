@@ -19,13 +19,7 @@ onmessage = (e) => {
         path = GetPath(sampledPixels, sampleInterval, pathDepth);
         let sampledImg = GetPathCoverage(path, imageData.width, imageData.height);
         outputImg = MatrixToImageData(sampledImg);
-        postMessage(["pathDFT", path]);
-    }
-    else if(e.data['stage'] === 2) {
-        let { pathDFT } = e.data;
-        postMessage(["state", 7]);
-        let sketchPath = CalculateSketchPath(pathDFT);
-        postMessage(["output", [outputImg, [sketchPath, dimensions]]]);
+        postMessage(["output", [path, dimensions]]);
     }
 }
 

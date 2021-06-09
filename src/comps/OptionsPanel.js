@@ -25,7 +25,7 @@ const OptionsPanel = () => {
     }
 
     const onCoefficientsChange = (e) => {
-        updateOptions('coefficients', e.target.value);
+        updateOptions('selectedResLevel', e.target.value);
     }
 
     const onSpeedChange = (e) => {
@@ -55,7 +55,7 @@ const OptionsPanel = () => {
     }, [appState])
 
     return (
-        ( (appState > 0 && appState < 8 &&
+        ( (appState > 0 && appState < 7 &&
             <div className="flex-row optionPanel"> 
                 <div className="optionEntry">
                     <label htmlFor="denoiseSlider">Edge Denoise: {sketchOptions['denoiseThreshold']}</label>
@@ -66,15 +66,15 @@ const OptionsPanel = () => {
                     <input type="range" className="custom-range optionSlider" id="sampleSlider" onChange={onSampleChange} min={1} max={5} value={sketchOptions['sampleInterval']} disabled={sampleDisabled} />
                 </div>
             </div>)
-        || (appState === 8 &&
+        || (appState >= 7 &&
             <div className="flex-row optionPanel">
                 <div className="optionEntry">
-                    <label htmlFor="denoiseSlider">Fourier Coefficients: {sketchOptions['coefficients']}</label>
-                    <input type="range" className="custom-range optionSlider" id="coefficientsSlider" onChange={onCoefficientsChange} min={0} max={1000} value={sketchOptions['coefficients']} />
+                    <label htmlFor="denoiseSlider">Fourier Coefficients: {sketchOptions['selectedResLevel'] === sketchOptions['resLevels'] - 1 ? "Max" : Math.pow(2, sketchOptions['selectedResLevel'] + 1)}</label>
+                    <input type="range" className="custom-range optionSlider" id="coefficientsSlider" onChange={onCoefficientsChange} min={0} max={sketchOptions['resLevels'] - 1} value={sketchOptions['selectedResLevel']} disabled={appState === 8 ? false : true} />
                 </div>
                 <div className="optionEntry">
                     <label htmlFor="sampleSlider">Sketch Speed: {sketchOptions['sketchSpeed']}</label>
-                    <input type="range" className="custom-range optionSlider" id="speedSlider" onChange={onSpeedChange} min={1} max={100} value={sketchOptions['sketchSpeed']} />
+                    <input type="range" className="custom-range optionSlider" id="speedSlider" onChange={onSpeedChange} min={1} max={100} value={sketchOptions['sketchSpeed']} disabled={appState === 8 ? false : true} />
                 </div>
             </div>)
         )
