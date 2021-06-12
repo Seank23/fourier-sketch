@@ -1,8 +1,9 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
-import { Card } from 'react-bootstrap';
-import { AppStateCtx, ImageDataCtx, ProgressCtx } from '../Contexts';
+import { Button, Card } from 'react-bootstrap';
+import { AppStateCtx, ImageDataCtx, ImgStateCtx, ProgressCtx } from '../Contexts';
 import ProgressBar from './ProgressBar';
 import SketchHandler from './SketchHandler';
+import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 
 const ImageViewer = (img) => {
     
@@ -18,6 +19,7 @@ const ImageViewer = (img) => {
     const [dim, setDim] = useState(0, 0);
 
     const { imageData, setImageData } = useContext(ImageDataCtx);
+    const { imgState, setImgState } = useContext(ImgStateCtx);
 
     const canvasRef = useRef(null);
     const measureRef = useRef(null);
@@ -36,6 +38,20 @@ const ImageViewer = (img) => {
         return [newWidth, newHeight];
     }
 
+    const prevImg = () => {
+        console.log("Prev");
+        if(imgState > 0) {
+            setImgState(imgState - 1)
+        }
+    }
+
+    const nextImg = () => {
+        console.log("Next");
+        if(imgState < 2) {
+            setImgState(imgState + 1)
+        }
+    }
+
     useEffect(() => {
         
         const canvas = canvasRef.current;
@@ -50,7 +66,7 @@ const ImageViewer = (img) => {
                 fullSize.width = imgElem.width;
                 fullSize.height = imgElem.height;
                 fullSizeCtx.drawImage(imgElem, 0, 0, imgElem.width, imgElem.height);
-                setImageData({0: fullSizeCtx.getImageData(0, 0, imgElem.width, imgElem.height), 1: null, 2: null});
+                setImageData({0: fullSizeCtx.getImageData(0, 0, imgElem.width, imgElem.height), 1: null});
 
                 // Fit image to canvas
                 var dim = getImageDimensions(imgElem, measureRef.current, canvas);
@@ -62,26 +78,31 @@ const ImageViewer = (img) => {
                 setImageLoaded(true);
             } else {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                setImageData({0: null, 1: null, 2: null});
+                setImageData({0: null, 1: null});
             }
         }
-    }, [imgElem, setImageData]);
+    }, [imgElem]);
 
     useEffect(() => {
-
+        console.log(imgState);
         const canvas = canvasRef.current;
         if(canvas && appState > 2) {
             const ctx = canvas.getContext("2d");
             if(imageData) {
-                if(appState === 1) {
+                if(imgState === 0) {
                     createImageBitmap(imageData[0]).then(renderer => ctx.drawImage(renderer, coords[0], coords[1], dim[0], dim[1]));
+                    if(appState >= 7) { document.getElementsByClassName("react-p5")[0].classList.add("hidden"); }
                 }
-                else if(appState === 5) {
+                else if(imgState === 1) {
                     createImageBitmap(imageData[1]).then(renderer => ctx.drawImage(renderer, coords[0], coords[1], dim[0], dim[1]));
+                    if(appState >= 7) { document.getElementsByClassName("react-p5")[0].classList.add("hidden"); }
                 }
             }
         }
-    }, [appState, coords, dim, imageData]);
+        if(appState >= 7 && imgState === 2) {
+            document.getElementsByClassName("react-p5")[0].classList.remove("hidden");
+        }
+    }, [imgState]);
 
     useEffect(() => {
         switch(appState) {
@@ -98,7 +119,7 @@ const ImageViewer = (img) => {
                 break;
             case 6:
                 setImageLoaded(false);
-                setMessage("Tracing Path...");
+                setMessage("Generating Sketch Path...");
                 break;
             case 7:
                 setImageLoaded(true);
@@ -111,9 +132,15 @@ const ImageViewer = (img) => {
         <div>
             <div className="measure" ref={measureRef}></div>
             <Card body className="viewer-container shadow">
-                { !imageLoaded && <ProgressBar message={message} progress={progress} /> }
-                { appState < 7 && <canvas className="img-container" width={CANVAS_WIDTH} height={CANVAS_HEIGHT} ref={canvasRef} hidden={!imageLoaded}></canvas> }
-                { appState >= 7 && <SketchHandler width={CANVAS_WIDTH} height={CANVAS_HEIGHT} /> }
+                <div className="flex-row">
+                    { (appState === 5 || appState === 8) && <Button className="nav-button" variant="outline-secondary" onClick={prevImg} disabled={imgState < 1}><FaArrowLeft/></Button> }
+                    <div  className="img-container"> 
+                        { !imageLoaded && <ProgressBar message={message} progress={progress} /> }
+                        { (appState < 7 || imgState < 2) && <canvas width={CANVAS_WIDTH} height={CANVAS_HEIGHT} ref={canvasRef} hidden={!imageLoaded}></canvas> }
+                        { appState >= 7 && <SketchHandler width={CANVAS_WIDTH} height={CANVAS_HEIGHT} /> }
+                    </div>
+                    { (appState === 5 || appState === 8) && <Button className="nav-button" variant="outline-secondary" onClick={nextImg} disabled={imgState > 1 || (appState < 8 && imgState === 1)}><FaArrowRight/></Button> }
+                </div>
             </Card>
         </div>
     )

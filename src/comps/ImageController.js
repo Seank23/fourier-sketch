@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useMemo, useRef } from 'react';
-import { AppStateCtx, ImageDataCtx, ProgressCtx, SketchOptionsCtx, SketchPathCtx } from '../Contexts';
+import { AppStateCtx, ImageDataCtx, ProgressCtx, SketchOptionsCtx, SketchPathCtx, ImgStateCtx } from '../Contexts';
 import ImageViewer from './ImageViewer';
 import useFirestore from '../hooks/useFirestore';
 
@@ -16,7 +16,9 @@ const ImageController = () => {
     const [img, setImg] = useState(null);
     const isProcessing = useRef(false);
 
-    const [imageData, setImageData] = useState({0: null, 1: null, 2: null});
+    const [imgState, setImgState] = useState(0);
+    const imgStateProvider = useMemo(() => ({ imgState, setImgState }), [imgState, setImgState]);
+    const [imageData, setImageData] = useState({0: null, 1: null});
     const imageDataProvider = useMemo(() => ({ imageData, setImageData }), [imageData, setImageData]);
 
     const { doc } = useFirestore('images');
@@ -72,25 +74,23 @@ const ImageController = () => {
     useEffect(() => {
 
         if(doc) {
-            if(appState === 0) {
-                setImg(null)
-            } else {
-                var imgElem = new Image();
-                imgElem.crossOrigin = "Anonymous";
-                if(doc.url !== prevUrl) {
-                    imgElem.src = doc.url;
-                    setPrevUrl(doc.url);
-                }
-                imgElem.onload = () => {
-                    setImg(imgElem);
-                };
+            var imgElem = new Image();
+            imgElem.crossOrigin = "Anonymous";
+            if(doc.url !== prevUrl) {
+                imgElem.src = doc.url;
+                setPrevUrl(doc.url);
             }
+            imgElem.onload = () => {
+                setImg(imgElem);
+            };
         }
-    }, [appState, doc, prevUrl]);
+    }, [doc]);
 
     useEffect(() => {
 
         if(appState === 0) {
+            setImg(null);
+            setImgState(0);
             if(processor) {
                 processor.terminate();
                 processor = undefined;
@@ -112,6 +112,7 @@ const ImageController = () => {
                         break;
                     case "output":
                         updateImageData(1, outputData[1]);
+                        setImgState(1);
                         setAppState(5);
                         isProcessing.current = false;
                         break;
@@ -135,6 +136,7 @@ const ImageController = () => {
                     case "output":
                         let pathDFT = GetPathDFT(outputData[1][0]);
                         setAppState(7);
+                        setImgState(2);
                         setSketchPath([pathDFT, outputData[1][0].length, outputData[1][1]]);
                         isProcessing.current = false;
                         break;
@@ -146,7 +148,9 @@ const ImageController = () => {
 
     return (
         <ImageDataCtx.Provider value={imageDataProvider}>
-            { appState > 0 && <ImageViewer img={img} /> }
+            <ImgStateCtx.Provider value={imgStateProvider}>
+                { appState > 0 && <ImageViewer img={img} /> }
+            </ImgStateCtx.Provider>
         </ImageDataCtx.Provider> 
      );
 }
