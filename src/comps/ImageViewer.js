@@ -39,14 +39,12 @@ const ImageViewer = (img) => {
     }
 
     const prevImg = () => {
-        console.log("Prev");
         if(imgState > 0) {
             setImgState(imgState - 1)
         }
     }
 
     const nextImg = () => {
-        console.log("Next");
         if(imgState < 2) {
             setImgState(imgState + 1)
         }
@@ -84,7 +82,6 @@ const ImageViewer = (img) => {
     }, [imgElem]);
 
     useEffect(() => {
-        console.log(imgState);
         const canvas = canvasRef.current;
         if(canvas && appState > 2) {
             const ctx = canvas.getContext("2d");

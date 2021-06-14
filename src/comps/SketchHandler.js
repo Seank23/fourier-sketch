@@ -21,6 +21,7 @@ const SketchHandler = ({width, height}) => {
 	const isProcessing = useRef(false);
 	const fps = useRef(60);
 	const selectedSketch = useRef([]);
+	const epicycleData = useRef([]);
 
 	useEffect(() => {
 
@@ -54,6 +55,7 @@ const SketchHandler = ({width, height}) => {
                         setProgress(outputData[1][0]);
 						let sketchData = outputData[1][1];
 						updateSketchOut(sketchData);
+						epicycleData.current.push(...outputData[1][2]);
 						let speed = Math.floor(sketchData[0].length / fps.current);
 						updateOptions(["sketchSpeed"], [Math.max(speed, 1)]);
 						isDrawing.current = true;
@@ -61,7 +63,8 @@ const SketchHandler = ({width, height}) => {
 
                     case "complete":
 						updateSketchOut(outputData[1][0]);
-						updateOptions(["resLevels", "selectedResLevel"], [outputData[1][1], outputData[1][1] - 1]);
+						epicycleData.current.push(...outputData[1][1]);
+						updateOptions(["resLevels", "selectedResLevel"], [outputData[1][2], outputData[1][2] - 1]);
 						isProcessing.current = false;
                         setAppState(8);
 						isDrawing.current = true;
@@ -86,7 +89,7 @@ const SketchHandler = ({width, height}) => {
 		if(sketchOptions['restartDrawing'] === 1) {
 			setTime(0);
 			isDrawing.current = true;
-			updateOptions('restartDrawing', 0);
+			updateOptions(['restartDrawing'], [0]);
 		}
 	}, [sketchOptions['restartDrawing']]);
 
@@ -106,27 +109,33 @@ const SketchHandler = ({width, height}) => {
         setSketchOptions(options);
     }
 
-	const setup = (p5, canvasParentRef) => {
-		p5.createCanvas(width, height).parent(canvasParentRef);
-	};
-
 	const updateSketchOut = (sketchData) => {
 		for(let i = 0; i < sketchData.length; i++) {
 			sketches.current[i].push(...sketchData[i]);
 		}
 	}
 
-	const drawEpicycles = (p5, curCoords, X) => {
+	const setup = (p5, canvasParentRef) => {
+		p5.createCanvas(width, height).parent(canvasParentRef);
+	};
 
-		for (let i = 0; i < X.length; i++) {
-			let prevCoords = [curCoords[0], curCoords[1]];
-			p5.stroke(255, 100);
-			p5.noFill();
-			p5.ellipse(prevCoords[0], prevCoords[1], X[i].amp * 2);
-			p5.stroke(255);
-			p5.line(prevCoords[0], prevCoords[1], curCoords[0], curCoords[1]);
+	const drawEpicycles = (p5, epicycles) => {
+
+		let limit = Math.pow(2, sketchOptions['selectedResLevel'] + 1);
+		if(appState === 7) { limit = Math.pow(2, sketches.current.length + 1); }
+		for (let i = 0; i < epicycles.length - 1; i++) {
+			if(epicycles[i].depth < limit) {
+				let x1 = (epicycles[i].x * scale.current) + offset.current[0];
+				let x2 = (epicycles[i + 1].x * scale.current) + offset.current[0];
+				let y1 = (epicycles[i].y * scale.current) + offset.current[1];
+				let y2 = (epicycles[i + 1].y * scale.current) + offset.current[1];
+				p5.stroke('rgba(91,154,248,0.5)');
+				p5.noFill();
+				if(i > 0) { p5.ellipse(x1, y1, (epicycles[i].amp * 2)); }
+				p5.stroke('rgba(0,0,0,0.5)');
+				p5.line(x1, y1, x2, y2);
+			}
 		}
-		return curCoords;
 	}
 
 	const draw = (p5) => {
@@ -137,13 +146,9 @@ const SketchHandler = ({width, height}) => {
 			if(selectedSketch.current) {
 				if(selectedSketch.current[time] !== undefined) {
 					if(selectedSketch.current[time].length === 2) {
-						p5.stroke(0, 100);
-						p5.line(0, (selectedSketch.current[time][1] * scale.current) + offset.current[1], 
-							(selectedSketch.current[time][0] * scale.current) + offset.current[0], (selectedSketch.current[time][1] * scale.current) + offset.current[1]);
-						p5.line((selectedSketch.current[time][0] * scale.current) + offset.current[0], 0, 
-							(selectedSketch.current[time][0] * scale.current) + offset.current[0], (selectedSketch.current[time][1] * scale.current) + offset.current[1]);
-						p5.stroke(0);
+						drawEpicycles(p5, epicycleData.current[time]);
 						p5.beginShape();
+						p5.stroke(0);
 						p5.noFill();
 						for (let i = 0; i < time; i++) {
 							p5.vertex((selectedSketch.current[i][0] * scale.current) + offset.current[0], (selectedSketch.current[i][1] * scale.current) + offset.current[1]);

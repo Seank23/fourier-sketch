@@ -106,6 +106,7 @@ label input{
   align-items: center;
   justify-content: center;
   flex-direction: column;
+  transition: 300ms;
 }
 .drag-area:hover {
   background-color: #dae8fc;
