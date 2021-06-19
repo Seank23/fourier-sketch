@@ -8,6 +8,7 @@
     "@testing-library/user-event": "^7.2.1",
     "bootstrap": "^4.6.0",
     "fft.js": "^4.0.4",
+    "file-saver": "^2.0.5",
     "firebase": "^8.4.3",
     "jquery": "^3.6.0",
     "mathjs": "^9.4.0",

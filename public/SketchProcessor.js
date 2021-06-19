@@ -1,9 +1,9 @@
 onmessage = (e) => {
-    let { sketchDFT, length } = e.data;
-    CalculateSketchPath(sketchDFT, length);
+    let { sketchDFT, length, epicycleSkip } = e.data;
+    CalculateSketchPath(sketchDFT, length, epicycleSkip);
 }
 
-function CalculateSketchPath(pathDFT, sketchLength) {
+function CalculateSketchPath(pathDFT, sketchLength, epicycleSkip) {
     
     let Xx = pathDFT[0];
     let Xy = pathDFT[1];
@@ -28,11 +28,10 @@ function CalculateSketchPath(pathDFT, sketchLength) {
         if(Date.now() - prevTime >= 1000) {
             postMessage(["progress", [(i / sketchLength) * 100, sketchPath, epicycleData]]);
             prevTime = Date.now();
-            sketchPath = new Array(N);
             for(let i = 0; i < N; i++) {
-                sketchPath[i] = [];
+                sketchPath[i].length = 0;
             }
-            epicycleData = [];
+            epicycleData.length = 0;
             epicycleIndex = 0;
         }
         let coords = [0, 0];
@@ -42,18 +41,20 @@ function CalculateSketchPath(pathDFT, sketchLength) {
 
             if(resolutions.includes(j)) {
                 let index = Math.log2(j) - 1;
-                sketchPath[index].push([coords[0], coords[1]]);
+                sketchPath[index].push([Math.fround(coords[0]), Math.fround(coords[1])]);
             }
-            if(j < 10 || (j < 50 && j % 2 === 0) || (j < 4000 && j % 50 === 0) || j % 250 === 0) {
-                epicycleData[epicycleIndex].push({depth: j, x: coords[0], y: coords[1], amp: Xx[j].amp});
+            if(i % epicycleSkip === 0) {
+                if(j < 10 || (j < 50 && j % 2 === 0) || (j < 4000 && j % 50 === 0) || j % 250 === 0) {
+                    epicycleData[epicycleIndex].push({depth: j, x: Math.fround(coords[0]), y: Math.fround(coords[1]), amp: Math.fround(Xx[j].amp)});
+                }
             }
 
             coords[0] += Xx[j].amp * Math.cos(Xx[j].freq * time + Xx[j].phase);
 			coords[1] += Xy[j].amp * Math.sin(Xy[j].freq * time + Xy[j].phase + Math.PI/2);
         }
-        sketchPath[N - 1].push(coords);
+        sketchPath[N - 1].push([Math.fround(coords[0]), Math.fround(coords[1])]);
         time += 2*Math.PI / Xx.length;
-        epicycleIndex++;
+        if(i % epicycleSkip === 0) { epicycleIndex++; }
     }
     postMessage(["complete", [sketchPath, epicycleData, N]]);
 }

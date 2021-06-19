@@ -134,7 +134,7 @@ const ImageViewer = (img) => {
                     <div  className="img-container"> 
                         { !imageLoaded && <ProgressBar message={message} progress={progress} /> }
                         { (appState < 7 || imgState < 2) && <canvas width={CANVAS_WIDTH} height={CANVAS_HEIGHT} ref={canvasRef} hidden={!imageLoaded}></canvas> }
-                        { appState >= 7 && <SketchHandler width={CANVAS_WIDTH} height={CANVAS_HEIGHT} /> }
+                        { (appState >= 7) && <SketchHandler width={CANVAS_WIDTH} height={CANVAS_HEIGHT} /> }
                     </div>
                     { (appState === 5 || appState === 8) && <Button className="nav-button" variant="outline-secondary" onClick={nextImg} disabled={imgState > 1 || (appState < 8 && imgState === 1)}><FaArrowRight/></Button> }
                 </div>
