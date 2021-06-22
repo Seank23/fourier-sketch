@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { AppStateCtx, ProgressCtx, SketchOptionsCtx, SketchPathCtx } from './Contexts'
 import Title from './comps/Title';
 import Cookies from 'universal-cookie';
@@ -26,6 +26,12 @@ function App() {
   if(cookies.get('imageId') && appState === 0) {
     setAppState(1);
   }
+
+  useEffect(() => {
+    if(appState === 0) {
+      setSketchOptions({ denoiseThreshold: 100, sampleInterval: 2, pathDepth: 400, selectedResLevel: 0, resLevels: 1, sketchSpeed: 50, restartDrawing: 0, showEpicycles: 1 });
+    }
+  }, [appState])
 
   return (
     <div className="App">

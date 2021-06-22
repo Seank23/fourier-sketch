@@ -86,11 +86,11 @@ const ImageViewer = (img) => {
         if(canvas && appState > 2) {
             const ctx = canvas.getContext("2d");
             if(imageData) {
-                if(imgState === 0) {
+                if(imgState === 0 && imageData[0] !== null) {
                     createImageBitmap(imageData[0]).then(renderer => ctx.drawImage(renderer, coords[0], coords[1], dim[0], dim[1]));
                     if(appState >= 7) { document.getElementsByClassName("react-p5")[0].classList.add("hidden"); }
                 }
-                else if(imgState === 1) {
+                else if(imgState === 1 && imageData[1] !== null) {
                     createImageBitmap(imageData[1]).then(renderer => ctx.drawImage(renderer, coords[0], coords[1], dim[0], dim[1]));
                     if(appState >= 7) { document.getElementsByClassName("react-p5")[0].classList.add("hidden"); }
                 }
@@ -121,6 +121,10 @@ const ImageViewer = (img) => {
             case 7:
                 setImageLoaded(true);
                 break;
+            case 9:
+                setImageLoaded(false);
+                setMessage("Parsing CSV...");
+                break;
             default:
         }
     }, [appState]);
@@ -130,13 +134,13 @@ const ImageViewer = (img) => {
             <div className="measure" ref={measureRef}></div>
             <Card body className="viewer-container shadow">
                 <div className="flex-row">
-                    { (appState === 5 || appState === 8) && <Button className="nav-button" variant="outline-secondary" onClick={prevImg} disabled={imgState < 1}><FaArrowLeft/></Button> }
+                    { (appState === 5 || appState === 8) && <Button className="nav-button" variant="outline-secondary" onClick={prevImg} disabled={imgState < 1 || imageData[0] === null || imageData[1] === null}><FaArrowLeft/></Button> }
                     <div  className="img-container"> 
                         { !imageLoaded && <ProgressBar message={message} progress={progress} /> }
                         { (appState < 7 || imgState < 2) && <canvas width={CANVAS_WIDTH} height={CANVAS_HEIGHT} ref={canvasRef} hidden={!imageLoaded}></canvas> }
                         { (appState >= 7) && <SketchHandler width={CANVAS_WIDTH} height={CANVAS_HEIGHT} /> }
                     </div>
-                    { (appState === 5 || appState === 8) && <Button className="nav-button" variant="outline-secondary" onClick={nextImg} disabled={imgState > 1 || (appState < 8 && imgState === 1)}><FaArrowRight/></Button> }
+                    { (appState === 5 || appState === 8) && <Button className="nav-button" variant="outline-secondary" onClick={nextImg} disabled={imgState > 1 || (appState < 8 && imgState === 1) || imageData[0] === null || imageData[1] === null}><FaArrowRight/></Button> }
                 </div>
             </Card>
         </div>

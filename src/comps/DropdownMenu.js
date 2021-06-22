@@ -24,11 +24,14 @@ const DropdownMenu = () => {
     const saveSketchVals = () => {
 
         let data = "";
-        for(let i = 0; i < sketchPath[0][0].length; i++) {
-            data += parseFloat(sketchPath[0][0][i].re).toFixed(4) + ',';
-            data += parseFloat(sketchPath[0][0][i].im).toFixed(4) + ',';
-            data += parseFloat(sketchPath[0][1][i].re).toFixed(4) + ',';
-            data += parseFloat(sketchPath[0][1][i].im).toFixed(4) + ',';
+        data += sketchPath[1] + ',' + sketchPath[2][0] + ',' + sketchPath[2][1] + ',';
+        let pathX = sketchPath[0][0].sort((a, b) => a.freq - b.freq);
+        let pathY = sketchPath[0][1].sort((a, b) => a.freq - b.freq);
+        for(let i = 0; i < pathX.length; i++) {
+            data += parseFloat(pathX[i].re).toFixed(3) + ',';
+            data += parseFloat(pathX[i].im).toFixed(3) + ',';
+            data += parseFloat(pathY[i].re).toFixed(3) + ',';
+            data += parseFloat(pathY[i].im).toFixed(3) + ',';
         }
         saveAs(new Blob([data], {type: "text/csv"}), "sketch.csv");
         setSaveValsSuccess(true);

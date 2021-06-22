@@ -27,6 +27,7 @@ const SketchHandler = ({width, height}) => {
 	useEffect(() => {
 
 		if(appState === 7 && sketchPath[0] && !isProcessing.current) {
+
 			isProcessing.current = true;
 			if(processor === undefined) {
                 processor = new Worker("./SketchProcessor.js", { type: "module" });
@@ -69,7 +70,7 @@ const SketchHandler = ({width, height}) => {
                         break;
                     default:
                 }
-				console.log("Data: " + memorySizeOf(outputData), "Sketches: " + memorySizeOf(sketches), "Epicycles: " + memorySizeOf(epicycleData));
+				//console.log("Data: " + memorySizeOf(outputData), "Sketches: " + memorySizeOf(sketches), "Epicycles: " + memorySizeOf(epicycleData));
             };
 		}
 		var imgDims = sketchPath[2];
@@ -142,7 +143,8 @@ const SketchHandler = ({width, height}) => {
 						let x2 = Math.fround((linearInterpolate(epicycles[i + 1].x, epicyclesNext[i + 1].x, interpFactor, epicycleSkip)* scale.current) + offset.current[0]);
 						let y1 = Math.fround((linearInterpolate(epicycles[i].y, epicyclesNext[i].y, interpFactor, epicycleSkip) * scale.current) + offset.current[1]);
 						let y2 = Math.fround((linearInterpolate(epicycles[i + 1].y, epicyclesNext[i + 1].y, interpFactor, epicycleSkip) * scale.current) + offset.current[1]);
-						p5.stroke('rgba(91,154,248,0.5)');
+						let colorStr = "rgba(91,154,248," + Math.min(0.4 + (epicycles[i].depth / limit) * 4, 1) + ")";
+						p5.stroke(colorStr);
 						p5.noFill();
 						if(i > 0) { p5.ellipse(x1, y1, (epicycles[i].amp * 2)); }
 						p5.stroke('rgba(0,0,0,0.5)');

@@ -144,6 +144,9 @@ const ImageController = () => {
                 }
             };
         }
+        else if(appState === 7) {
+            setImgState(2);
+        }
     }, [appState]);
 
     return (
