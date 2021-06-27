@@ -56,7 +56,7 @@ const DropdownMenu = () => {
             <a href="#" className={appState < 7 ? "disabled" : ""} onClick={() => setOpen(!open)}><GiHamburgerMenu/></a>
             { appState >= 7 && open &&
                 <Card body className="dropdownContainer shadow">
-                    <Button variant={sketchOptions["showEpicycles"] ? "secondary" : "outline-secondary"} size="sm" className="dropdownItem" onClick={epicyclesChange}>
+                    <Button variant={sketchOptions["showEpicycles"] ? "secondary" : "outline-secondary"} size="sm" className="dropdownItem" onClick={epicyclesChange} disabled={appState === 8 ? false : true}>
                         {sketchOptions["showEpicycles"] ? "Hide Epicycles" : "Show Epicycles"}</Button>
                     <Button variant={saveValsSuccess ? "success" : "outline-secondary"} size="sm" className="dropdownItem" onClick={saveSketchVals} disabled={appState === 8 ? false : true}>Save Sketch (.csv)</Button>
                     <Button variant={saveImageSuccess ? "success" : "outline-secondary"} size="sm" className="dropdownItem" onClick={saveSketchImage} disabled={appState === 8 ? false : true}>Save Sketch Image</Button>

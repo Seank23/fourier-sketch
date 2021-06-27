@@ -88,7 +88,7 @@ const ImageController = () => {
 
     useEffect(() => {
 
-        if(appState === 0) {
+        if(appState === 9) { // Reset state
             setImg(null);
             setImgState(0);
             if(processor) {

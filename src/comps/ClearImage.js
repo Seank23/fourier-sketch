@@ -11,9 +11,10 @@ const ClearImage = () => {
     const [ text, setText ] = useState("");
 
     const onClear = () => {
+        setAppState(9); // Reset
         setSketchPath([]);
         cookies.set('imageId', '', { path: '/', maxAge: 1800 });
-        setAppState(0);
+        setTimeout(() => setAppState(0), 200);
     }
 
     useEffect(() => {

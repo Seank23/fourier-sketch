@@ -17,8 +17,6 @@ onmessage = (e) => {
         let { imageData, sampleInterval, pathDepth } = e.data;
         let sampledPixels = GetSampledPixels(ImageDataToMatrix(imageData), sampleInterval);
         path = GetPath(sampledPixels, sampleInterval, pathDepth);
-        let sampledImg = GetPathCoverage(path, imageData.width, imageData.height);
-        outputImg = MatrixToImageData(sampledImg);
         postMessage(["output", [path, dimensions]]);
     }
 }
@@ -120,52 +118,106 @@ function GetSampledPixels(imgMatrix, sampleInterval) {
 
 function GetPath(pixels, sampleInterval, depth) {
 
-    var pixelStrings = PixelsToString(pixels);
-    var path = [];
-    var pixelIndex = 0;
+    let pixelStrings = PixelsToString(pixels);
+    let numPixels = pixelStrings.length;
+    let path = [];
+    let numSkip = 0;
+    let pixelIndex = 0;
     path[0] = pixelStrings[0];
-    var backtrackCount = 0;
-    while(path.length < pixelStrings.length) {
-        if(path.length % 100 === 0) { postMessage(["progress", (path.length / pixelStrings.length) * 100]) }
-        const curPixel = pixelStrings[pixelIndex];
+
+    while(path.length < numPixels - numSkip) {
+
+        if(path.length % 100 === 0) { postMessage(["progress", (path.length / (numPixels - numSkip)) * 100]) }
+        let curPixel = pixelStrings[pixelIndex];
         for(let i = sampleInterval; i < (depth + 1) * sampleInterval; i += sampleInterval) {
-            var searchPixels = [];
-            const pixelVals = curPixel.split(",");
-            const pixelX = parseInt(pixelVals[0]);
-            const pixelY = parseInt(pixelVals[1]);
+
+            let searchPixels = [];
+            let pixelVals = curPixel.split(",");
+            let pixelX = parseInt(pixelVals[0]);
+            let pixelY = parseInt(pixelVals[1]);
+
             for(let j = -i; j < i + 1; j += sampleInterval) {
-                searchPixels[searchPixels.length] = (pixelX - i) + "," + (pixelY + j);
-                searchPixels[searchPixels.length] = (pixelX + i) + "," + (pixelY + j);
-                searchPixels[searchPixels.length] = (pixelX + j) + "," + (pixelY - i);
-                searchPixels[searchPixels.length] = (pixelX + j) + "," + (pixelY + i);
+                searchPixels.push((pixelX - i) + "," + (pixelY + j));
+                searchPixels.push((pixelX + i) + "," + (pixelY + j));
+                searchPixels.push((pixelX + j) + "," + (pixelY - i));
+                searchPixels.push((pixelX + j) + "," + (pixelY + i));
             }
             var found = false;
+            let foundIndex = -1;
             for(let j = 0; j < searchPixels.length; j++) {
-                var foundIndex = pixelStrings.indexOf(searchPixels[j]);
+                foundIndex = pixelStrings.indexOf(searchPixels[j]);
                 if(foundIndex !== -1) {
-                    if(!path.includes(searchPixels[j])) {
                         found = true;
-                        pixelIndex = foundIndex;
                         break;
-                    }
                 }
             }
             if(found) {
-                path[path.length] = pixelStrings[pixelIndex];
-                backtrackCount = 0;
+                path.push(pixelStrings[foundIndex]);
+                pixelStrings.splice(pixelIndex, 1);
+                if(foundIndex > pixelIndex) {
+                    foundIndex--;
+                }
+                pixelIndex = foundIndex;
                 break;
             }
         }
         if(!found) {
-            backtrackCount++;
-            pixelIndex = pixelStrings.indexOf(path[path.length - 2*backtrackCount]); // Backtrack to previous pixel
-            path[path.length] = pixelStrings[pixelIndex];
-            console.log("Backtracking: " + backtrackCount);
-            break;
+            let [bestIndex, pixelsToRemove] = GetNextPixel(curPixel, pixelStrings, sampleInterval);
+            if(bestIndex === -1) { break; }
+            path.push(pixelStrings[bestIndex]);
+            let indexOffset = 0;
+            for(let i = 0; i < pixelsToRemove.length; i++) {
+                pixelStrings.splice(pixelsToRemove[i] - i, 1);
+                numSkip++;
+                if(bestIndex > pixelsToRemove[i]) {
+                    indexOffset++;
+                }
+            }
+            bestIndex -= indexOffset;
+            pixelStrings.splice(pixelIndex, 1);
+            if(bestIndex > pixelIndex) {
+                bestIndex--;
+            }
+            pixelIndex = bestIndex;
         }
     }
     postMessage(["progress", null]);
     return StringToPixels(path);
+}
+
+function GetNextPixel(origin, pixels, sampleInterval) {
+
+    let curDistances = GetPixelDistances(origin, pixels);
+    let bestIndex = -1;
+    let i = 0;
+    for(i; i < Math.min(curDistances.length, 50); i++) {
+        let nextDistances = GetPixelDistances(pixels[curDistances[i].key], pixels);
+        if(nextDistances[0].val < 5 * sampleInterval && nextDistances[Math.min(nextDistances.length - 1, 3)].val < 5 * sampleInterval) {
+            bestIndex = curDistances[i].key;
+            break;
+        }
+    }
+    let pixelsToRemove = [];
+    for(let j = 0; j < i; j++) {
+        pixelsToRemove.push(curDistances[j].key);
+    }
+    return [bestIndex, pixelsToRemove];
+}
+
+function GetPixelDistances(origin, pixels) {
+
+    let distances = [];
+    let pixelVals = origin.split(",");
+    let pixelX = parseInt(pixelVals[0]);
+    let pixelY = parseInt(pixelVals[1]);
+    for(let i = 0; i < pixels.length; i++) {
+        let vals = pixels[i].split(',');
+        let distance = Math.sqrt(Math.pow(parseInt(vals[0]) - pixelX, 2) + Math.pow(parseInt(vals[1]) - pixelY, 2));
+        if(distance > 0) {
+            distances.push({key: i, val: distance});
+        }
+    }
+    return distances.sort((a, b) => a.val - b.val);
 }
 
 function PixelsToString(pixels) {
@@ -187,42 +239,6 @@ function StringToPixels(pixelStrings) {
         pixels[i][1] = parseInt(strings[1]);
     }
     return pixels;
-}
-
-function GetPathCoverage(path, imgWidth, imgHeight) {
-
-    var sampledImg = new Array(imgHeight);
-    for(let i = 0; i < sampledImg.length; i++) {
-        sampledImg[i] = new Array(imgWidth);
-        for(let j = 0; j < sampledImg[i].length; j++) {
-            sampledImg[i][j] = 0;
-        }
-    }
-    for(let i = 0; i < path.length; i++) {
-        sampledImg[path[i][0]][path[i][1]] = 255;
-    }
-    return sampledImg;
-}
-
-function CalculateSketchPath(pathDFT) {
-    
-    let Xx = pathDFT[0];
-    let Xy = pathDFT[1];
-    let time = 0;
-    let sketchPath = [];
-
-    for(let i = 0; i < Xx.length; i++) {
-        if(i % 100 === 0) { postMessage(["progress", (i / Xx.length) * 100]) }
-        let coords = [0, 0];
-        for(let j = 0; j < Xx.length; j++) {
-            coords[0] += Xx[j].amp * Math.cos(Xx[j].freq * time + Xx[j].phase);
-			coords[1] += Xy[j].amp * Math.sin(Xy[j].freq * time + Xy[j].phase + Math.PI/2);
-        }
-        sketchPath.push(coords);
-        time += 2*Math.PI / Xx.length;
-    }
-    postMessage(["progress", null]);
-    return sketchPath;
 }
 
 function uniform_array(len, value) {
