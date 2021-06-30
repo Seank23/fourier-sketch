@@ -40,9 +40,13 @@ a {
 
 .ImageUIPanel {
   max-width: var(--width);
-  height: 63px;
+  height: 100%;
   text-align: center;
   position: relative;
+}
+
+.welcome {
+  height: 52px;
 }
 
 label{
@@ -179,7 +183,7 @@ label input{
 
 .card-header {
   padding: 0;
-  padding-top: 8px;
+  padding-top: 2px;
   border-bottom: 0;
 }
 

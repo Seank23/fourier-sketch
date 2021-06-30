@@ -27,8 +27,11 @@ const SketchHandler = ({width, height}) => {
 	useEffect(() => {
 
 		if(appState === 9) { // Reset state
-			processor.terminate();
-			processor = undefined;
+			if(processor) {
+				processor.terminate();
+				processor = undefined;
+				isProcessing.current = false;
+			}
 		}
 		if(appState === 7 && sketchPath[0] && !isProcessing.current) {
 
@@ -131,6 +134,7 @@ const SketchHandler = ({width, height}) => {
 
 	const setup = (p5, canvasParentRef) => {
 		p5.createCanvas(width, height).parent(canvasParentRef);
+		
 	};
 
 	const drawEpicycles = (p5, epicycles, epicyclesNext, interpFactor) => {
@@ -159,8 +163,8 @@ const SketchHandler = ({width, height}) => {
 	}
 
 	const draw = (p5) => {
-
 		if(isDrawing.current) {
+			p5.frameRate(1000); // Max FPS
 			fps.current = p5.frameRate();
 			p5.background(255);
 			if(selectedSketch.current) {
@@ -201,4 +205,4 @@ function removeEmptyChildren(arr) {
 	  }
 	}
 	return arr;
-  }
+}

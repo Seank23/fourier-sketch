@@ -1,5 +1,8 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { AppStateCtx, SketchOptionsCtx } from '../Contexts';
+import { withStyles, makeStyles } from '@material-ui/core/styles';
+import Typography from '@material-ui/core/Typography';
+import { Tooltip } from '@material-ui/core';
 
 const OptionsPanel = () => {
 
@@ -8,6 +11,22 @@ const OptionsPanel = () => {
     const [denoiseDisabled, setDenoiseDisabled] = useState(true);
     const [sampleDisabled, setSampleDisabled] = useState(true);
     const [updatePage, setUpdatePage] = useState(true);
+
+    const HtmlTooltip = withStyles((theme) => ({
+        tooltip: {
+          backgroundColor: '#f5f5f9',
+          color: 'rgba(0, 0, 0, 0.87)',
+          maxWidth: 220,
+          fontSize: theme.typography.pxToRem(12),
+          border: '1px solid #dadde9',
+        },
+      }))(Tooltip);
+
+      const useStyles = makeStyles((theme) => ({
+        customWidth: {
+          maxWidth: 500,
+        },
+      }));
 
     const onDenoiseChange = (e) => {
         updateOptions('denoiseThreshold', e.target.value);
@@ -54,27 +73,57 @@ const OptionsPanel = () => {
         }
     }, [appState])
 
+    const classes = useStyles();
+
     return (
         ( (appState > 0 && appState < 7 &&
             <div className="flex-row optionPanel"> 
                 <div className="optionEntry">
                     <label htmlFor="denoiseSlider">Edge Denoise: {sketchOptions['denoiseThreshold']}</label>
-                    <input type="range" className="custom-range optionSlider" id="denoiseSlider" onChange={onDenoiseChange} min={0} max={255} value={sketchOptions['denoiseThreshold']} disabled={denoiseDisabled} />
+                    <HtmlTooltip  enterDelay={800} classes={{ tooltip: classes.customWidth }} title={
+                        <React.Fragment>
+                            <Typography color="inherit">Edge Denoise</Typography>
+                            <ul><li>{"Denoise reduces the complexity of edges."}</li><li>{"High values may result in lost details."}</li><li>{"Values between 75 and 150 are recommended."}</li></ul>
+                        </React.Fragment>
+                    }>
+                        <input type="range" className="custom-range optionSlider" id="denoiseSlider" onChange={onDenoiseChange} min={0} max={255} value={sketchOptions['denoiseThreshold']} disabled={denoiseDisabled} />
+                    </HtmlTooltip>
                 </div>
                 <div className="optionEntry">
-                    <label htmlFor="sampleSlider">Sample Ratio: {sketchOptions['sampleInterval']}</label>
-                    <input type="range" className="custom-range optionSlider" id="sampleSlider" onChange={onSampleChange} min={1} max={5} value={sketchOptions['sampleInterval']} disabled={sampleDisabled} />
+                    <label htmlFor="sampleSlider">Sample Interval: {sketchOptions['sampleInterval']}</label>
+                    <HtmlTooltip enterDelay={800} classes={{ tooltip: classes.customWidth }} title={
+                        <React.Fragment>
+                            <Typography color="inherit">Sample Interval</Typography>
+                            <ul><li>{"Determines the sampling resolution used to construct the sketch."}</li><li>{"Lower values will sample more edge pixels, producing a higher quality sketch but with increased computational cost."}</li><li>{"The recommended value is 2."}</li></ul>
+                        </React.Fragment>
+                    }>
+                        <input type="range" className="custom-range optionSlider" id="sampleSlider" onChange={onSampleChange} min={1} max={5} value={sketchOptions['sampleInterval']} disabled={sampleDisabled} />
+                    </HtmlTooltip>
                 </div>
             </div>)
         || (appState >= 7 &&
             <div className="flex-row optionPanel">
                 <div className="optionEntry">
                     <label htmlFor="denoiseSlider">Fourier Coefficients: {sketchOptions['selectedResLevel'] === sketchOptions['resLevels'] - 1 ? "Max" : Math.pow(2, sketchOptions['selectedResLevel'] + 1)}</label>
-                    <input type="range" className="custom-range optionSlider" id="coefficientsSlider" onChange={onCoefficientsChange} min={0} max={sketchOptions['resLevels'] - 1} value={sketchOptions['selectedResLevel']} disabled={appState === 8 ? false : true} />
+                    <HtmlTooltip enterDelay={800} classes={{ tooltip: classes.customWidth }} title={
+                        <React.Fragment>
+                            <Typography color="inherit">Fourier Coefficients</Typography>
+                            <ul><li>{"Determines the number of Fourier coefficients used to draw the sketch."}</li><li>{"Lower values construct the sketch using fewer data points meaning details are lost."}</li><li>{"Illustrates how Fourier analysis is used to draw an increasingly detailed sketch."}</li></ul>
+                        </React.Fragment>
+                    }>
+                        <input type="range" className="custom-range optionSlider" id="coefficientsSlider" onChange={onCoefficientsChange} min={0} max={sketchOptions['resLevels'] - 1} value={sketchOptions['selectedResLevel']} disabled={appState === 8 ? false : true} />
+                    </HtmlTooltip>
                 </div>
                 <div className="optionEntry">
                     <label htmlFor="sampleSlider">Sketch Speed: {sketchOptions['sketchSpeed']}</label>
-                    <input type="range" className="custom-range optionSlider" id="speedSlider" onChange={onSpeedChange} min={1} max={100} value={sketchOptions['sketchSpeed']} disabled={appState === 8 ? false : true} />
+                    <HtmlTooltip enterDelay={800} classes={{ tooltip: classes.customWidth }} title={
+                        <React.Fragment>
+                            <Typography color="inherit">Sketch Speed</Typography>
+                            <ul><li>{"Determines how quickly the sketch is drawn."}</li></ul>
+                        </React.Fragment>
+                    }>
+                        <input type="range" className="custom-range optionSlider" id="speedSlider" onChange={onSpeedChange} min={1} max={100} value={sketchOptions['sketchSpeed']} disabled={appState === 8 ? false : true} />
+                    </HtmlTooltip>
                 </div>
             </div>)
         )
