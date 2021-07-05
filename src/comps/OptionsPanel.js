@@ -6,6 +6,8 @@ import { Tooltip } from '@material-ui/core';
 
 const OptionsPanel = () => {
 
+    const qualitySettingUI = { 1: "Very Low", 2: "Low", 3: "Medium", 4: "High", 5: "Very High", 6: "Ultra" };
+
     const { appState, setAppState } = useContext(AppStateCtx);
     const { sketchOptions, setSketchOptions } = useContext(SketchOptionsCtx);
     const [denoiseDisabled, setDenoiseDisabled] = useState(true);
@@ -40,7 +42,7 @@ const OptionsPanel = () => {
     }
 
     const onSampleChange = (e) => {
-        updateOptions('sampleInterval', e.target.value);
+        updateOptions('qualitySetting', e.target.value);
     }
 
     const onCoefficientsChange = (e) => {
@@ -90,14 +92,14 @@ const OptionsPanel = () => {
                     </HtmlTooltip>
                 </div>
                 <div className="optionEntry">
-                    <label htmlFor="sampleSlider">Sample Interval: {sketchOptions['sampleInterval']}</label>
+                    <label htmlFor="sampleSlider">Sketch Quality: {qualitySettingUI[sketchOptions['qualitySetting']]}</label>
                     <HtmlTooltip enterDelay={800} classes={{ tooltip: classes.customWidth }} title={
                         <React.Fragment>
-                            <Typography color="inherit">Sample Interval</Typography>
-                            <ul><li>{"Determines the sampling resolution used to construct the sketch."}</li><li>{"Lower values will sample more edge pixels, producing a higher quality sketch but with increased computational cost."}</li><li>{"The recommended value is 2."}</li></ul>
+                            <Typography color="inherit">Sketch Quality</Typography>
+                            <ul><li>{"Tweaks sketch parameters such as the sample resolution and interpolation amount."}</li><li>{"Higher settings will produce a more detailed and accurate sketch but will take longer to process."}</li><li>{"Medium or High is recommended."}</li></ul>
                         </React.Fragment>
                     }>
-                        <input type="range" className="custom-range optionSlider" id="sampleSlider" onChange={onSampleChange} min={1} max={5} value={sketchOptions['sampleInterval']} disabled={sampleDisabled} />
+                        <input type="range" className="custom-range optionSlider" id="sampleSlider" onChange={onSampleChange} min={1} max={6} value={sketchOptions['qualitySetting']} disabled={sampleDisabled} />
                     </HtmlTooltip>
                 </div>
             </div>)

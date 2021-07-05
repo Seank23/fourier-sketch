@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { AppStateCtx, ProgressCtx, SketchOptionsCtx, SketchPathCtx } from './Contexts'
+import { AppStateCtx, ImageURLCtx, ProgressCtx, SketchOptionsCtx, SketchPathCtx } from './Contexts'
 import Title from './comps/Title';
 import Cookies from 'universal-cookie';
 import ImageUIPanel from './comps/ImageUIPanel';
@@ -16,6 +16,8 @@ function App() {
 
   const [appState, setAppState] = useState(0);
   const appStateProvider = useMemo(() => ({appState, setAppState}), [appState, setAppState]);
+  const [imageURL, setImageURL] = useState(null);
+  const imageURLProvider = useMemo(() => ({imageURL, setImageURL}), [imageURL, setImageURL]);
   const [sketchPath, setSketchPath] = useState([]);
   const sketchPathProvider = useMemo(() => ({sketchPath, setSketchPath}), [sketchPath, setSketchPath]);
   const [progress, setProgress] = useState(null);
@@ -29,7 +31,7 @@ function App() {
 
   useEffect(() => {
     if(appState === 0) {
-      setSketchOptions({ denoiseThreshold: 100, sampleInterval: 2, pathDepth: 40, selectedResLevel: 0, resLevels: 1, sketchSpeed: 50, restartDrawing: 0, showEpicycles: 1 });
+      setSketchOptions({ denoiseThreshold: 100, qualitySetting: 3, pathDepth: 40, selectedResLevel: 0, resLevels: 1, sketchSpeed: 50, restartDrawing: 0, showEpicycles: 1 });
     }
   }, [appState])
 
@@ -37,17 +39,19 @@ function App() {
     <div className="App">
       <Title/>
       <AppStateCtx.Provider value={appStateProvider}>
-        <SketchPathCtx.Provider value={sketchPathProvider}>
-          <ProgressCtx.Provider value={progressProvider}>
-            <SketchOptionsCtx.Provider value={sketchOptionsProvider}>
+        <ImageURLCtx.Provider value={imageURLProvider}>
+          <SketchPathCtx.Provider value={sketchPathProvider}>
+            <ProgressCtx.Provider value={progressProvider}>
+              <SketchOptionsCtx.Provider value={sketchOptionsProvider}>
 
-              <ImageUIPanel/>
-              { appState === 0 && <UploadImage/> }
-              <ImageController/>
+                <ImageUIPanel/>
+                { appState === 0 && <UploadImage/> }
+                <ImageController/>
 
-            </SketchOptionsCtx.Provider>
-          </ProgressCtx.Provider>
-        </SketchPathCtx.Provider>
+              </SketchOptionsCtx.Provider>
+            </ProgressCtx.Provider>
+          </SketchPathCtx.Provider>
+        </ImageURLCtx.Provider>
       </AppStateCtx.Provider>
     </div>
   );

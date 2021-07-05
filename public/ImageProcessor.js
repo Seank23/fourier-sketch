@@ -10,7 +10,7 @@ onmessage = (e) => {
         let imgMatrix = ImageDataToMatrix(ToGrayscale(imageData));
         postMessage(["state", 4]);
         let denoiseSobel = DenoiseImage(ConvolveSobel(imgMatrix), denoiseThreshold);
-        outputImg = MatrixToImageData(denoiseSobel);
+        outputImg = MatrixToImageData(InvertColor(denoiseSobel));
         postMessage(["output", outputImg]);
     }
     else if(e.data['stage'] === 1) {
@@ -90,10 +90,20 @@ function ConvolveSobel(imgMatrix) {
     var outY = conv_2d([[1,2,1],[0,0,0],[-1,-2,-1]], imgMatrix);
     for(let i = 0; i < outX.length; i++) {
         for(let j = 0; j < outX[i].length; j++) {
-            outX[i][j] = Math.sqrt(outX[i][j] ** 2 + outY[i][j] ** 2)
+            outX[i][j] = Math.min(Math.sqrt(outX[i][j] ** 2 + outY[i][j] ** 2), 255);
         }
     }
     return outX;
+}
+
+function InvertColor(imgMatrix) {
+
+    for(let i = 0; i < imgMatrix.length; i++) {
+        for(let j = 0; j < imgMatrix[i].length; j++) {
+            imgMatrix[i][j] = Math.abs(255 - imgMatrix[i][j]);
+        }
+    }
+    return imgMatrix;
 }
 
 function GetSampledPixels(imgMatrix, sampleInterval) {
@@ -105,7 +115,7 @@ function GetSampledPixels(imgMatrix, sampleInterval) {
     var count = 0;
     for(let i = 0; i < imgHeight; i += sampleInterval) {
         for(let j = 0; j < imgWidth; j += sampleInterval) {
-            if(imgMatrix[i][j] > 0) {
+            if(imgMatrix[i][j] < 255) {
                 sampledPixels[count] = new Array(2);
                 sampledPixels[count][0] = i;
                 sampledPixels[count][1] = j;

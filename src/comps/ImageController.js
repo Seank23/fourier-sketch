@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useContext, useMemo, useRef } from 'react';
-import { AppStateCtx, ImageDataCtx, ProgressCtx, SketchOptionsCtx, SketchPathCtx, ImgStateCtx } from '../Contexts';
+import { AppStateCtx, ImageDataCtx, ProgressCtx, SketchOptionsCtx, SketchPathCtx, ImgStateCtx, ImageURLCtx } from '../Contexts';
 import ImageViewer from './ImageViewer';
-import useFirestore from '../hooks/useFirestore';
 
 const FFT = require('fft.js');
 var processor = new Worker("./ImageProcessor.js", { type: "module" });
 
 const ImageController = () => {
 
+    const qualityToRes = { 1: 2, 2: 2, 3: 2, 4: 1, 5: 1, 6: 1 };
     const { appState, setAppState } = useContext(AppStateCtx);
+    const { imageURL } = useContext(ImageURLCtx);
     const { setSketchPath } = useContext(SketchPathCtx);
     const { setProgress } = useContext(ProgressCtx);
     const { sketchOptions } = useContext(SketchOptionsCtx);
@@ -20,8 +21,6 @@ const ImageController = () => {
     const imgStateProvider = useMemo(() => ({ imgState, setImgState }), [imgState, setImgState]);
     const [imageData, setImageData] = useState({0: null, 1: null});
     const imageDataProvider = useMemo(() => ({ imageData, setImageData }), [imageData, setImageData]);
-
-    const { doc } = useFirestore('images');
 
     function GetPathDFT(path) {
 
@@ -72,19 +71,19 @@ const ImageController = () => {
     }
 
     useEffect(() => {
-
-        if(doc) {
+        if(imageURL) {
             var imgElem = new Image();
             imgElem.crossOrigin = "Anonymous";
-            if(doc.url !== prevUrl) {
-                imgElem.src = doc.url;
-                setPrevUrl(doc.url);
+            if(imageURL !== prevUrl) {
+                imgElem.src = imageURL;
+                setPrevUrl(imageURL);
             }
             imgElem.onload = () => {
+                setAppState(1);
                 setImg(imgElem);
             };
         }
-    }, [doc]);
+    }, [imageURL]);
 
     useEffect(() => {
 
@@ -122,7 +121,7 @@ const ImageController = () => {
         }
         else if(appState === 6 && !isProcessing.current) {
             isProcessing.current = true;
-            processor.postMessage({ stage: 1, imageData: imageData[1], sampleInterval: sketchOptions['sampleInterval'], pathDepth: sketchOptions['pathDepth'] });
+            processor.postMessage({ stage: 1, imageData: imageData[1], sampleInterval: qualityToRes[sketchOptions['qualitySetting']], pathDepth: sketchOptions['pathDepth'] });
             processor.onmessage = (e) => {
 
                 var outputData = e.data;

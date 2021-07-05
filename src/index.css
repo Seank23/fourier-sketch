@@ -11,7 +11,6 @@
 body{
   font-family: "Poppins";
   color: var(--secondary);
-  overflow: hidden; /*  Disable scrollbars */
   display: block;
   align-items: center;
   justify-content: center;
@@ -39,6 +38,7 @@ a {
 }
 
 .ImageUIPanel {
+  min-width: 1320px;
   max-width: var(--width);
   height: 100%;
   text-align: center;
@@ -179,6 +179,10 @@ label input{
   flex-direction: column;
   width: 100%;
   padding: 0 10px;
+}
+
+.viewer-container {
+  min-width: 1320px;
 }
 
 .card-header {

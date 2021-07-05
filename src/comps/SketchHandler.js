@@ -11,8 +11,8 @@ const SketchHandler = ({width, height}) => {
 	const { appState, setAppState } = useContext(AppStateCtx);
 	const { sketchOptions, setSketchOptions } = useContext(SketchOptionsCtx);
 
-	const paddingX = 0;
-	const paddingY = 0;
+
+	const qualityToInterp = { 1: 4, 2: 2, 3: 1, 4: 4, 5: 2, 6: 1 };
 	const scale = useRef(1);
 	const offset = useRef([0, 0]);
 	const sketches = useRef([]);
@@ -22,7 +22,8 @@ const SketchHandler = ({width, height}) => {
 	const fps = useRef(60);
 	const selectedSketch = useRef([]);
 	const epicycleData = useRef([]);
-	const epicycleSkip = 10;
+	const epicycleSkip = 8;
+	const sketchInterp = qualityToInterp[sketchOptions["qualitySetting"]];
 
 	useEffect(() => {
 
@@ -39,7 +40,7 @@ const SketchHandler = ({width, height}) => {
 			if(processor === undefined) {
                 processor = new Worker("./SketchProcessor.js", { type: "module" });
             }
-            processor.postMessage({ sketchDFT: sketchPath[0], length: sketchPath[1], epicycleSkip: epicycleSkip });
+            processor.postMessage({ sketchDFT: sketchPath[0], length: sketchPath[1], epicycleSkip: epicycleSkip, sketchInterp: sketchInterp });
             processor.onmessage = (e) => {
 
                 var outputData = e.data;
@@ -56,7 +57,7 @@ const SketchHandler = ({width, height}) => {
                     case "progress":
                         setProgress(outputData[1][0]);
 						let sketchData = outputData[1][1];
-						let speed = Math.ceil(sketchData[0].length / fps.current);
+						let speed = Math.ceil((sketchData[0].length * sketchInterp) / fps.current);
 						updateOptions(["sketchSpeed"], [Math.max(speed, 1)]);
 						updateSketchOut(sketchData);
 						epicycleData.current.push(...outputData[1][2]);
@@ -81,12 +82,12 @@ const SketchHandler = ({width, height}) => {
 		}
 		var imgDims = sketchPath[2];
 		if(imgDims) {
-			scale.current = (width - 2*paddingX) / imgDims[0];
-			if(scale.current * imgDims[1] > (height - 2*paddingY)) {
-				scale.current = (height - 2*paddingY) / imgDims[1];
+			scale.current = width / imgDims[0];
+			if(scale.current * imgDims[1] > height) {
+				scale.current = height / imgDims[1];
 			}
-			offset.current[0] = paddingX + (((width - 2*paddingX) - imgDims[0]*scale.current) / 2);
-			offset.current[1] = paddingY + (((height - 2*paddingY) - imgDims[1]*scale.current) / 2);
+			offset.current[0] = ((width - imgDims[0]*scale.current) / 2);
+			offset.current[1] = ((height - imgDims[1]*scale.current) / 2);
 		}
 
 	}, [appState, sketchPath]);
@@ -134,14 +135,13 @@ const SketchHandler = ({width, height}) => {
 
 	const setup = (p5, canvasParentRef) => {
 		p5.createCanvas(width, height).parent(canvasParentRef);
-		
+		p5.pixelDensity(1);
 	};
 
 	const drawEpicycles = (p5, epicycles, epicyclesNext, interpFactor) => {
 
 		let limit = Math.pow(2, sketchOptions['selectedResLevel'] + 1);
 		if(appState === 7) { limit = Math.pow(2, sketches.current.length + 1); }
-		
 		if(epicycles !== undefined && epicyclesNext !== undefined) {
 			for (let i = 0; i < epicycles.length - 1; i++) {
 				if(epicycles[i] !== undefined && epicyclesNext[i] !== undefined) {
@@ -176,11 +176,13 @@ const SketchHandler = ({width, height}) => {
 						p5.beginShape();
 						p5.stroke(0);
 						p5.noFill();
-						for (let i = 0; i < time; i++) {
-							p5.vertex(Math.fround((selectedSketch.current[i][0] * scale.current) + offset.current[0]), Math.fround((selectedSketch.current[i][1] * scale.current) + offset.current[1]));
+						for (let i = 0; i < time * sketchInterp; i++) {
+							let xInterp = linearInterpolate(selectedSketch.current[Math.floor(i / sketchInterp)][0], selectedSketch.current[Math.floor(i / sketchInterp) + 1][0], i % sketchInterp, sketchInterp);
+							let yInterp = linearInterpolate(selectedSketch.current[Math.floor(i / sketchInterp)][1], selectedSketch.current[Math.floor(i / sketchInterp) + 1][1], i % sketchInterp, sketchInterp);
+							p5.vertex(Math.fround((xInterp * scale.current) + offset.current[0]), Math.fround((yInterp * scale.current) + offset.current[1]));
 						}
 						p5.endShape();
-						setTime(time + sketchOptions['sketchSpeed']);
+						setTime(time + Math.ceil((sketchOptions['sketchSpeed'] / sketchInterp)));
 						if(time + sketchOptions['sketchSpeed'] >= selectedSketch.current.length - 1) {
 							isDrawing.current = false;
 						}

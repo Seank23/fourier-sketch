@@ -51,7 +51,6 @@ const ImageViewer = (img) => {
     }
 
     useEffect(() => {
-        
         const canvas = canvasRef.current;
         if(canvas) {
             setMessage("Loading Image...");
