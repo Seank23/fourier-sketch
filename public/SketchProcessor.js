@@ -5,6 +5,7 @@ onmessage = (e) => {
 
 function CalculateSketchPath(pathDFT, sketchLength, epicycleSkip, sketchInterp) {
     
+    const filterVals = [1, 0.1, 0.025];
     let Xx = pathDFT[0];
     let Xy = pathDFT[1];
     let time = 0;
@@ -45,8 +46,8 @@ function CalculateSketchPath(pathDFT, sketchLength, epicycleSkip, sketchInterp) 
                 let filterX = coords[0];
                 let filterY = coords[1];
                 if(sketchPath[index].length > 2) {
-                    filterX = averageFilter([coords[0], sketchPath[index][sketchPath[index].length - 1][0], sketchPath[index][sketchPath[index].length - 2][0]], [1, 0.1, 0.05]);
-                    filterY = averageFilter([coords[1], sketchPath[index][sketchPath[index].length - 1][1], sketchPath[index][sketchPath[index].length - 2][1]], [1, 0.1, 0.05]);
+                    filterX = filter([coords[0], sketchPath[index][sketchPath[index].length - 1][0], sketchPath[index][sketchPath[index].length - 2][0]], filterVals);
+                    filterY = filter([coords[1], sketchPath[index][sketchPath[index].length - 1][1], sketchPath[index][sketchPath[index].length - 2][1]], filterVals);
                 }
                 sketchPath[index].push([Math.fround(filterX), Math.fround(filterY)]);
             }
@@ -61,8 +62,8 @@ function CalculateSketchPath(pathDFT, sketchLength, epicycleSkip, sketchInterp) 
         }
 
         if(sketchPath[N - 1].length > 2) {
-            coords[0] = averageFilter([coords[0], sketchPath[N - 1][sketchPath[N - 1].length - 1][0], sketchPath[N - 1][sketchPath[N - 1].length - 2][0]], [1, 0.2, 0.75]);
-            coords[1] = averageFilter([coords[1], sketchPath[N - 1][sketchPath[N - 1].length - 1][1], sketchPath[N - 1][sketchPath[N - 1].length - 2][1]], [1, 0.2, 0.75]);
+            coords[0] = filter([coords[0], sketchPath[N - 1][sketchPath[N - 1].length - 1][0], sketchPath[N - 1][sketchPath[N - 1].length - 2][0]], filterVals);
+            coords[1] = filter([coords[1], sketchPath[N - 1][sketchPath[N - 1].length - 1][1], sketchPath[N - 1][sketchPath[N - 1].length - 2][1]], filterVals);
         }
         sketchPath[N - 1].push([Math.fround(coords[0]), Math.fround(coords[1])]);
         
@@ -72,10 +73,10 @@ function CalculateSketchPath(pathDFT, sketchLength, epicycleSkip, sketchInterp) 
     postMessage(["complete", [sketchPath, epicycleData, N]]);
 }
 
-function averageFilter(inputVals, filter) {
+function filter(inputVals, filterVals) {
     let out = 0;
     for(let i = 0; i < inputVals.length; i++) {
-        out += inputVals[i] * filter[i];
+        out += inputVals[i] * filterVals[i];
     }
-    return out / filter.reduce((a, b) => a + b);
+    return out / filterVals.reduce((a, b) => a + b);
 }

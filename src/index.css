@@ -33,6 +33,13 @@ a {
   font-weight: normal;
 }
 
+.title a {
+  margin: 20px;
+  color: var(--primary);
+  font-size: 1rem;
+  font-weight: normal;
+}
+
 .hidden {
   display: none;
 }
@@ -247,6 +254,19 @@ label input{
 
 .disabled svg {
   color: #c5c5c5;
+}
+
+.modal-contents {
+  text-align: center;
+}
+
+.modal-contents p {
+  text-align: justify;
+}
+
+.modal-contents h5 {
+  text-align: left;
+  margin: 20px 5px;
 }
 
 .lds-ring {
