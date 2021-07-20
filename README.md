@@ -1,7 +1,7 @@
 # FourierSketch
 URL: https://fouriersketch.web.app/
 
-![FourierSketch](https://github.com/Seank23/fourier-sketch/blob/master/Images/FourierSketch.PNG)
+![FourierSketch](https://github.com/Seank23/fourier-sketch/blob/master/public/images/FourierSketch.PNG)
 
 ## What is FourierSketch?
 FourierSketch is a web app that uses the principles of Fourier analysis to construct an interactive sketch of any image. This [video by 3Blue1Brown](https://www.youtube.com/embed/r6sGWTCMz2k) illustrates the intuition behind the process and has served as the main source of inspiration for this app.
