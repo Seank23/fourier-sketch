@@ -110,7 +110,7 @@ const UploadImage = () => {
                 <div className={`drag-area ${dragging ? "active" : "" } `} onDragOver={() => onDrag(true)} onDrop={() => onDrag(false)}>
                     <input {...getInputProps()}/>
                     <div className="icon"><FaFileUpload/></div>
-                    <header>Drag & Drop to Upload File</header>
+                    <header>Drag & Drop to Open File</header>
                     <span>OR</span>
                     <button>Browse File</button>
                 </div>

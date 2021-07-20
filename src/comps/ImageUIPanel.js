@@ -14,7 +14,7 @@ const ImageUIPanel = () => {
     return ( 
         <Card className={appState === 0 ? "ImageUIPanel welcome" : "ImageUIPanel"}>
             <Card.Header>
-            { appState === 0  && <span id="welcomeText">Welcome to FourierSketch, upload an image to start!</span> }
+            { appState === 0  && <span id="welcomeText">Welcome to FourierSketch, open an image to start!</span> }
             { ((appState > 0 && appState < 7) || appState === 8) && <div className="flex-row"><OptionsPanel/><div className="buttonContainer"><GenerateSketch/><ClearImage/></div><DropdownMenu/></div> }
             { appState === 7 && 
             <div className="flex-row">

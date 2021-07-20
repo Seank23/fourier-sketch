@@ -135,7 +135,7 @@ function GetPath(pixels, sampleInterval, depth) {
     let pixelIndex = 0;
     path[0] = pixelStrings[0];
 
-    while(path.length < numPixels - numSkip) {
+    while(path.length < (numPixels - numSkip) * 0.995) {
 
         if(path.length % 100 === 0) { postMessage(["progress", (path.length / (numPixels - numSkip)) * 100]) }
         let curPixel = pixelStrings[pixelIndex];

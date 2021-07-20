@@ -4,7 +4,7 @@ const HelpAbout = () => {
         <div className="modal-contents">
             <img src="./images/FourierSketch.PNG" width="700px" alt="FourierSketch"/>
             <h5>What is FourierSketch?</h5>
-            <p>FourierSketch is a web app that uses the principles of Fourier analysis to construct an interactive sketch of any image. The following video by 3Blue1Brown illustrates the intuition behind the task and has served as the main source of inspiration for this project.</p>
+            <p>FourierSketch is a web app that uses the principles of Fourier analysis to construct an interactive sketch of any image. The following video by 3Blue1Brown illustrates the intuition behind the process and has served as the main source of inspiration for this app.</p>
             <iframe width="560" height="315" src="https://www.youtube.com/embed/r6sGWTCMz2k" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
             <h5>How does it work?</h5>
             <p>First, an edge-isolated outline is obtained from the image, this contains all of the information required to construct the sketch. A denoise filter is then applied to remove small details that will not be properly resolved by the sketching algorithm. The outline image is sampled and its pixel coordinates are passed to a custom pathing algorithm. This algorithm attempts to find the best path through each pixel such that the features of the image are preserved. Once completed, the Fourier Transform of the sketch path is obtained using the FFT algorithm, the Fourier coefficients that result are then used to produce the sketch.</p>
